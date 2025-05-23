@@ -30,6 +30,7 @@
 ```
 
 # Como compilar
+Execute no Prompt Comando:
 ```sh
 cmake -S . -B build -G "MinGW Makefiles"
 cmake --build build
@@ -37,6 +38,7 @@ cmake --build build
 Nota: O primeiro comando só precisa ser executado uma vez, após isso para compilar novamente o programa só o segundo precisa ser executado.
 
 # Depois de compilar
+Para executar o projeto via Prompt Comando:
 ```sh
 cd build
 UniMarioBros.exe
