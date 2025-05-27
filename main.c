@@ -1,16 +1,24 @@
+#include <stdio.h>
 #include "raylib.h"
 #include "mario.h"
 
-
+// Inicializando Mario_t
+Mario_t Mario;
 
 int main(void){
     InitWindow(800, 450, "UniMarioBros");
+
+    SetTargetFPS(60);
+
+    InitMario(&Mario); // Inicializando as structs do Mario com valores
     
     while (!WindowShouldClose()) {
+        UpdateMario(&Mario);
+
         BeginDrawing();
         ClearBackground(RAYWHITE);
-        DrawText("Mario", 190, 200, 20, BLACK);
-        DrawMario();
+
+        DrawMario(&Mario);
         EndDrawing();
     }
 

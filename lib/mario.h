@@ -8,8 +8,8 @@ typedef struct{
     Rectangle destRec; // Retangulo de destino: pos_x, pos_y, largura, altura
     int currentFrame; // Frame atual (0->max)
     int frameCount; // Total de frames (max)
-    int frameSpeed; // Duração de cada animação (ex: 8 ticks)
-    int frameCounter; // Contador para animação atual (conta quantos ticks já foram até o frameSpeed)
+    float frameSpeed; // Duração de cada animação (ex: 1s)
+    float frameTimer; // Contador para animação atual (conta quantos ticks já foram até o frameSpeed)
 } MarioSprite_t;
 
 // Enum para os estados do Mário (Quando ele pega flor, etc...)
@@ -40,5 +40,14 @@ typedef struct{
     MarioSprite_t jumpAnim; // Pulo
 } Mario_t;
 
+// Promissoras structs:
+// MarioAnimationTimes_t -> Armazena as temporizações de cada animação do Mario vai servir 
+//                          para dizer quanto tempo cada frame da sprite é exibido
+
+
+// Protótipos de funções:
+void InitMario(Mario_t *Mario);
+void DrawMario(Mario_t *Mario);
+void UpdateMario(Mario_t *Mario);
 
 #endif
