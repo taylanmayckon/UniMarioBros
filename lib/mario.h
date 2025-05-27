@@ -6,37 +6,38 @@ typedef struct{
     Texture2D spriteSheet; // Local do arquivo da sprite
     Rectangle sourceRec; // Tamanho de cada frame do sprite 
     Rectangle destRec; // Retangulo de destino: pos_x, pos_y, largura, altura
-    int currentFrame; // Frame atual
-    int frameCount; // Total de frames
-    int frameSpeed; 
-    int frameCounter;
+    int currentFrame; // Frame atual (0->max)
+    int frameCount; // Total de frames (max)
+    int frameSpeed; // Duração de cada animação (ex: 8 ticks)
+    int frameCounter; // Contador para animação atual (conta quantos ticks já foram até o frameSpeed)
 } MarioSprite_t;
 
 // Enum para os estados do Mário (Quando ele pega flor, etc...)
 typedef enum{
-    STATE_SMALL,
-    STATE_BIG,
+    STATE_SMALL, // Mario pequeno (padrão)
+    STATE_BIG, // Mario grande
 } MarioPowerUpStates_t;
 
 // Enum para as ações do Mario (pular, andar, cair...)
 typedef enum{
-    ACTION_IDLE,
-    ACTION_WALKING,
-    ACTION_JUMPING,
-    ACTION_FALLING
+    ACTION_IDLE, // Mario parado
+    ACTION_WALKING, // Mario andando
+    ACTION_JUMPING, // Mario pulando
+    ACTION_FALLING // Mario caindo
 } MarioActionStates_t;
 
 // Struct principal do Mario
 typedef struct{
-    Vector2 position; // Posição atual 
-    Vector2 speed; // Velocidade atual 
-    float jumpForce;
-    int lives;
-    bool canJump;
-    MarioPowerUpStates_t powerUpState; // Estado atual do Mario (se houver)
-    MarioSprite_t idleAnim; // Animação para quando estiver barato
-    MarioSprite_t walkRight; // Animação para quando estiver PARA A DIREITA
-    MarioSprite_t jumpAnim; // Animação de pulo
+    Vector2 position; // Posição atual do Mario (x, y)
+    Vector2 speed; // Velocidade atual do Mario (x, y)
+    float jumpForce; // Penso que vá ser para controlar a velocidade do pulo (começa alto e blablabla)
+    int lives; // Contador de vidas
+    bool canJump; // Booleano para indicar se pode pular ou não
+    MarioPowerUpStates_t powerUpState; // Estado atual do Mario (se houver) (ex: normal, grande)
+    // Variáveis que armazenam todas as infos sobre as animações (sprite, tamanho, etc)
+    MarioSprite_t idleAnim; // Parado
+    MarioSprite_t walkRight; // Andando para direita
+    MarioSprite_t jumpAnim; // Pulo
 } Mario_t;
 
 
