@@ -38,8 +38,7 @@ cmake --build build
 Nota: O primeiro comando só precisa ser executado uma vez, após isso para compilar novamente o programa só o segundo precisa ser executado.
 
 # Depois de compilar
-Para executar o projeto via Prompt Comando:
+O CMakeLists.txt está configurado para gerar o arquivo UniMarioBros.exe na raiz do diretório, então é só executar ou escrever no Terminal:
 ```sh
-cd build
 UniMarioBros.exe
 ```
