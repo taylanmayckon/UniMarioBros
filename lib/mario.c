@@ -26,7 +26,7 @@ void InitMario(Mario_t *Mario){
 
     Mario->position = (Vector2){300.0f, 300.0f}; // Posição inicial
     Mario->facingRight = true; // Virado para direita
-    Mario->actualState = ACTION_IDLE; // Parado
+    Mario->actualState = ACTION_WALKING; // Parado
 
     // Iniciando cada sprite da struct de animações
     // Andando para direita
@@ -34,7 +34,7 @@ void InitMario(Mario_t *Mario){
         "assets/textures/mario/mario1-walkright.png", // Diretorio da spriteSheet
         (Rectangle){0.0f, 0.0f,// Posição da origem dos frames
                     WALK_RIGHT_FRAME_WIDHT_CUT, WALK_RIGHT_FRAME_HEIGHT_CUT}, // (ESCALA) Largura e altura de cada frame (ajustar depois individualmente)
-        0.2f, // Tempo de cada frame
+        0.1f, // Tempo de cada frame
         0.0f, // Cronometro para cada frame 
         6, // Quantidade total de frames
         0); // Frame atual
@@ -44,7 +44,7 @@ void InitMario(Mario_t *Mario){
         "assets/textures/mario/mario1-walkleft.png", // Diretorio da spriteSheet
         (Rectangle){0.0f, 0.0f,// Posição da origem dos frames
                     WALK_RIGHT_FRAME_WIDHT_CUT, WALK_RIGHT_FRAME_HEIGHT_CUT}, // (ESCALA) Largura e altura de cada frame (ajustar depois individualmente)
-        0.2f, // Tempo de cada frame
+        0.1f, // Tempo de cada frame
         0.0f, // Cronometro para cada frame 
         6, // Quantidade total de frames
         5); // Frame atual (Left é invertido, o parado é o ultimo)
@@ -83,8 +83,8 @@ void ChangeSpriteTimer(Mario_t *Mario, MarioSprite_t *sprite){
     // Na pratica é um cronometro
     sprite->frameTimer += GetFrameTime();
     // Depuração
-    printf("[ChangeSpriteTimer] Timer: %.2f, Frame Atual:%d\n", sprite->frameTimer, sprite->currentFrame);
-    printf("[ChangeSpriteTimer] GetFrameTime(): %f\n", GetFrameTime());
+    //printf("[ChangeSpriteTimer] Timer: %.2f, Frame Atual:%d\n", sprite->frameTimer, sprite->currentFrame);
+    //printf("[ChangeSpriteTimer] GetFrameTime(): %f\n", GetFrameTime());
 
     // Verificando se tá na hora de alterar o frame da animação
     if(sprite->frameTimer >= sprite->frameSpeed){
