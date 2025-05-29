@@ -33,7 +33,7 @@ typedef struct{
 // Struct que armazena as informações das ações do Mário
 typedef struct{
     //MarioSprite_t idleAnim; // Parado
-    MarioSprite_t normalRightWalkAnim; // Andando para direita (mario normal)
+    MarioSprite_t normalRightWalkAnim; // Andando (mario normal)
     MarioSprite_t normalLeftWalkAnim; // Andando para esquerda (mario normal)
     MarioSprite_t jumpAnim; // Pulo
 } MarioAnimation_t;
@@ -55,7 +55,7 @@ typedef struct{
 } Mario_t;
 
 // Protótipos de funções:
-void InitSprite(MarioSprite_t *sprite, char *asset_dir, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int frameIdleIndex, int firstFrameIndex, int frameCount, int currentFrame);
+void InitSprite(MarioSprite_t *sprite, Texture2D *texture, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int frameIdleIndex, int firstFrameIndex, int frameCount, int currentFrame);
 void InitMario(Mario_t *Mario);
 void ChangeMarioSpritePosition(Mario_t *Mario, MarioSprite_t *sprite, float width, float height, float width_cut);
 void ChangeSpriteTimer(Mario_t *Mario, MarioSprite_t *sprite);

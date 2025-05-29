@@ -6,15 +6,8 @@
 #define NORMAL_WALK_FRAME_WIDHT_CUT 19.0f
 #define NORMAL_WALK_FRAME_HEIGHT_CUT 18.0f
 
-//
-
-void InitSprite(MarioSprite_t *sprite, char *asset_dir, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int frameIdleIndex, int firstFrameIndex, int frameCount, int currentFrame){
-    sprite->spriteSheet = LoadTexture(asset_dir);
-    // Depurando
-    if (sprite->spriteSheet.id == 0) {
-        printf("[InitSprite] ERRO: Não foi possível carregar a textura: %s\n", asset_dir);
-        return;
-    }
+void InitSprite(MarioSprite_t *sprite, Texture2D *texture, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int frameIdleIndex, int firstFrameIndex, int frameCount, int currentFrame){
+    sprite->spriteSheet = *texture; // Carregando a sprite já renderizada
     sprite->sourceRec = original_frame_pos_scale;
     sprite->frameSpeed = frameSpeed;
     sprite->frameTimer = frameTimer;
@@ -41,8 +34,9 @@ void InitMario(Mario_t *Mario){
 
     // Iniciando cada sprite da struct de animações
     // (MARIO NORMAL) Andando para direita
+    Texture2D normalMarioWalking = LoadTexture("assets/textures/mario/mario1.png"); // Carregando uma vez só para direita/esquerda
     InitSprite(&Mario->animations.normalRightWalkAnim, // Ponteiro para a sprite 
-        "assets/textures/mario/mario1.png", // Diretorio da spriteSheet
+        &normalMarioWalking, // Ponteiro para a textura carregada
         (Rectangle){0.0f, 0.0f,// Posição da origem dos frames
                     NORMAL_WALK_FRAME_WIDHT_CUT, NORMAL_WALK_FRAME_HEIGHT_CUT}, // (ESCALA) Largura e altura de cada frame
         0.1f, // Tempo de cada frame
@@ -51,10 +45,9 @@ void InitMario(Mario_t *Mario){
         6, // Index do primeiro frame
         3, // Quantidade total de frames válidos da animação no sheet
         6); // Frame atual
-
     // (MARIO NORMAL) Andando para esquerda
     InitSprite(&Mario->animations.normalLeftWalkAnim, // Ponteiro para a sprite 
-        "assets/textures/mario/mario1.png", // Diretorio da spriteSheet
+        &normalMarioWalking, // Ponteiro para a textura carregada
         (Rectangle){0.0f, 0.0f,// Posição da origem dos frames
                     NORMAL_WALK_FRAME_WIDHT_CUT, NORMAL_WALK_FRAME_HEIGHT_CUT}, // (ESCALA) Largura e altura de cada frame
         0.1f, // Tempo de cada frame
