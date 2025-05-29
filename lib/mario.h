@@ -1,6 +1,8 @@
 #ifndef MARIO_H
 #define MARIO_H
 
+#include "mario_animdb.h"
+
 // Enum para os estados do Mário (Quando ele pega flor, etc...)
 typedef enum{
     STATE_SMALL, // Mario pequeno (padrão)
@@ -30,10 +32,15 @@ typedef struct{
 
 // Struct que armazena as informações das ações do Mário
 typedef struct{
-    //MarioSprite_t idleAnim; // Parado
+    // Parametros das sprites
     MarioSprite_t normalWalkAnim; // (Mario normal) Andando 
     MarioSprite_t superWalkAnim; // (Super mario) Andando 
     MarioSprite_t jumpAnim; // Pulo
+
+    // Banco de dados de cada animação do Mario com base no PowerUp
+    MarioAnimDB_t smallMarioAnimDB; // Mario normal
+    MarioAnimDB_t superMarioAnimDB; // Super mario
+    MarioAnimDB_t fireMarioAnimDB; // Fire mario
 } MarioAnimation_t;
 
 // Struct principal do Mario

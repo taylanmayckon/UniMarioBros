@@ -1,6 +1,8 @@
+#include <stdio.h>
 #include "raylib.h"
 #include "mario.h"
-#include <stdio.h>
+#include "mario_animdb.h"
+
 
 // (NORMAL MARIO) definições para as sprites dele andando (190x18 total -> 19,0x18/frame)
 #define NORMAL_WALK_FRAME_WIDHT_CUT 19.0f
@@ -69,6 +71,13 @@ void InitMario(Mario_t *Mario){
         0.0f, // Cronometro para cada frame 
         12, // Quantidade total de frames do sheet
         6); // Frame atual
+
+
+    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // Pegando os dados do "Banco de dados" de animações
+    //Mario->animations.smallMarioAnimDB = InitSmallMarioDB();
+    //Mario->animations.superMarioAnimDB = InitSuperMarioDB();
+    //Mario->animations.fireMarioAnimDB = InitFireMarioDB();
     
     printf("[InitMario] Finished\n");
 }
@@ -168,7 +177,6 @@ void IdleMario(Mario_t *Mario){
         
         // Super mario
         case STATE_BIG:
-            printf("[IdleMario] STATE_BIG\n");
             if(Mario->facingRight){ // Virado para direita
                 Mario->animations.superWalkAnim.currentFrame = 6; // Index dele virado para direita no sheet
                 //                               Ponteiro para a sprite            Proporção que será desenhado                                 Largura do corte no eixo x
@@ -235,7 +243,6 @@ void JumpingMario(Mario_t *Mario){
         
         // Super mario
         case STATE_BIG:
-            printf("[IdleMario] STATE_BIG\n");
             if(Mario->facingRight){ // Virado para direita
                 Mario->animations.superWalkAnim.currentFrame = 10; // Index dele virado para direita no sheet
                 //                               Ponteiro para a sprite            Proporção que será desenhado                                 Largura do corte no eixo x
@@ -269,7 +276,6 @@ void SlidingMario(Mario_t *Mario){
         
         // Super mario
         case STATE_BIG:
-            printf("[IdleMario] STATE_BIG\n");
             if(Mario->facingRight){ // Virado para direita
                 Mario->animations.superWalkAnim.currentFrame = 9; // Index dele virado para direita no sheet
                 //                               Ponteiro para a sprite            Proporção que será desenhado                                 Largura do corte no eixo x
