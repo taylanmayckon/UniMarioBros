@@ -13,8 +13,6 @@ int main(void){
     InitMario(&Mario); // Inicializando as structs do Mario com valores
     
     while (!WindowShouldClose()) {
-        //UpdateMarioSprite(&Mario);
-
         BeginDrawing();
         ClearBackground(RAYWHITE);
 

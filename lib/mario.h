@@ -5,6 +5,7 @@
 typedef enum{
     STATE_SMALL, // Mario pequeno (padrão)
     STATE_BIG, // Mario grande
+    STATE_FIRE, // Mario que taca bola de fogo
 } MarioPowerUpStates_t;
 
 // Enum para as ações do Mario (pular, andar, cair...)
@@ -20,17 +21,20 @@ typedef struct{
     Texture2D spriteSheet; // Local da textura da animação
     Rectangle sourceRec; // Retangulo de origem (o corte da sprite)
     Rectangle destRec; // Retangulo de destino: pos_x, pos_y, largura, altura
+    int frameIdleIndex; // Offset para casos onde tem sprite de 2 anim. em 1 só arquivo
+    int firstFrameIndex; // Index do primeiro frame no sheet
     int frameCount; // Total de frames (max)
     int currentFrame; // Frame atual (0->frameCount)
     float frameSpeed; // Duração de cada frame (ex: 1s)
     float frameTimer; // Contador para animação atual (conta quantos segundos já foram até o frameSpeed)
+    bool revertAnim; // Booleano para inverter animação para tornar mais suave a transição dos frames
 } MarioSprite_t;
 
 // Struct que armazena as informações das ações do Mário
 typedef struct{
     //MarioSprite_t idleAnim; // Parado
-    MarioSprite_t walkRight; // Andando para direita
-    MarioSprite_t walkLeft; // Andando para direita
+    MarioSprite_t normalRightWalkAnim; // Andando para direita (mario normal)
+    MarioSprite_t normalLeftWalkAnim; // Andando para esquerda (mario normal)
     MarioSprite_t jumpAnim; // Pulo
 } MarioAnimation_t;
 
@@ -42,6 +46,7 @@ typedef struct{
     int lives; // Contador de vidas
     int score; // Pontuação
     int coins; // Quant. de moedas
+    bool invincible; // Quando ele é atacado fica invencível se tiver cogumelo
     bool canJump; // Booleano para indicar se pode pular ou não
     bool facingRight; // Se esta olhando para a direita ou não (1: direita, 0: não)
     MarioPowerUpStates_t powerUpState; // Estado atual do Mario (ex: normal, grande)
@@ -50,9 +55,9 @@ typedef struct{
 } Mario_t;
 
 // Protótipos de funções:
-void InitSprite(MarioSprite_t *sprite, char *asset_dir, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int frameCount, int currentFrame);
+void InitSprite(MarioSprite_t *sprite, char *asset_dir, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int frameIdleIndex, int firstFrameIndex, int frameCount, int currentFrame);
 void InitMario(Mario_t *Mario);
-void ChangeMarioSpritePosition(Mario_t *Mario, MarioSprite_t *sprite, float width, float height);
+void ChangeMarioSpritePosition(Mario_t *Mario, MarioSprite_t *sprite, float width, float height, float width_cut);
 void ChangeSpriteTimer(Mario_t *Mario, MarioSprite_t *sprite);
 void IdleMario(Mario_t *Mario);
 void WalkingMario(Mario_t *Mario);
