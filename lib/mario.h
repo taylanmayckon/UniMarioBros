@@ -67,8 +67,8 @@ typedef struct{
 // Protótipos de funções:
 void InitSprite(MarioSprite_t *sprite, Texture2D *texture, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int currentFrame);
 void InitMario(Mario_t *Mario);
-void ChangeMarioSpritePosition(Mario_t *Mario, MarioSprite_t *sprite, float width_scale, float height_scale);
-void ChangeSpriteTimer(Mario_t *Mario, MarioSprite_t *sprite, FrameRange_t range);
+void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_scale);
+void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range);
 void DrawMario(Mario_t *Mario);
 
 #endif

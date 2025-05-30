@@ -80,7 +80,8 @@ void InitMario(Mario_t *Mario){
 }
 
 // Função para mover a sprite de lugar e desenhá-la
-void ChangeMarioSpritePosition(Mario_t *Mario, MarioSprite_t *sprite, float width_scale, float height_scale){
+void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_scale){
+    MarioSprite_t *sprite = &Mario->animations.activeSprite;
     
     // Posição
     sprite->destRec.x = Mario->position.x;
@@ -106,7 +107,9 @@ void ChangeMarioSpritePosition(Mario_t *Mario, MarioSprite_t *sprite, float widt
 }
 
 // Função para CONTROLAR a temporização dos frames das sprites
-void ChangeSpriteTimer(Mario_t *Mario, MarioSprite_t *sprite, FrameRange_t range){ // first_frame e end_frame são o intervalo da animação    
+void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range){ // first_frame e end_frame são o intervalo da animação    
+    MarioSprite_t *sprite = &Mario->animations.activeSprite;
+
     // Acumula o tempo que passou desde o ultimo frame
     // Na pratica é um cronometro
     sprite->frameTimer += GetFrameTime();
@@ -115,40 +118,16 @@ void ChangeSpriteTimer(Mario_t *Mario, MarioSprite_t *sprite, FrameRange_t range
 
         // Movendo para DIREITA
         if(Mario->facingRight){ 
-            // Incrementa (ciclo normal da animação)
-            if(!sprite->revertAnim){
-                sprite->currentFrame++; // Avança para o próximo frmae
-                // Restringindo as animações para valores permitidos
-                if(sprite->currentFrame == range.end){ 
-                    sprite->revertAnim = !sprite->revertAnim; // Aciona a inversão para tornar animação suave
-                }
-            }
-            // Decrementa (ciclo inverso para suavizar animação)
-            else{
-                sprite->currentFrame--;
-                // Restrigindo as animações para vlaores permitidos
-                if(sprite->currentFrame == range.start){
-                    sprite->revertAnim = !sprite->revertAnim; // Aciona a inversão para tornar animação suave
-                }
+            sprite->currentFrame++;
+            if(sprite->currentFrame>range.end){
+                sprite->currentFrame=range.start;
             }
         }
         // Movendo para ESQUERDA
         else{
-            // Decrementa (ciclo normal da animação)
-            if(!sprite->revertAnim){
-                sprite->currentFrame--; 
-                // Restrigindo as animações para valores permitidos
-                if(sprite->currentFrame == range.start){
-                    sprite->revertAnim = !sprite->revertAnim; // Aciona a inversão para tornar animação suave
-                }
-            }
-            // Incrementa (ciclo inverso para suavizar animação)
-            else{
-                sprite->currentFrame++;
-                // Restrigindo as animações para valores permitidos
-                if(sprite->currentFrame == range.end){
-                    sprite->revertAnim = !sprite->revertAnim; // Aciona a inversão para tornar animação suave
-                }
+            sprite->currentFrame--;
+            if(sprite->currentFrame<range.start){
+                sprite->currentFrame=range.end;
             }
             
         }
@@ -218,7 +197,7 @@ void DrawMario(Mario_t *Mario){
         else{ // Virado para esquerda
             range = currentAnimData->leftAnimFrames;
         }
-        ChangeSpriteTimer(Mario, activeSprite, range); // Função que verifica o momento de alterar o frame, e o faz quando chega
+        ChangeSpriteTimer(Mario, range); // Função que verifica o momento de alterar o frame, e o faz quando chega
     }
     else{ // Se é frame fixo
         if(Mario->facingRight){ // Virado para direita
@@ -232,7 +211,6 @@ void DrawMario(Mario_t *Mario){
     // Desenha a sprite na tela
     ChangeMarioSpritePosition(
         Mario,
-        activeSprite,
         activeSprite->frameWidthCut * MARIO_SPRITE_SCALE,
         activeSprite->frameHeightCut * MARIO_SPRITE_SCALE);
 }

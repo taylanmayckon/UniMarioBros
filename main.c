@@ -19,14 +19,13 @@ int main(void){
         
 
         // Estrutura basica pra testar troca de animação
-        /*
         if(timer<=5.0f){
            timer += GetFrameTime();
         }
         else{
             timer = 0.0f;
             Mario.facingRight = !Mario.facingRight;
-        }*/
+        }
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
