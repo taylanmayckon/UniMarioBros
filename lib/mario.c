@@ -1,69 +1,98 @@
+#include <stdio.h>
 #include "raylib.h"
 #include "mario.h"
-#include <stdio.h>
+#include "mario_animdb.h"
 
-// Definições para a sprite walk right (174x16 total -> 29x16/frame)
-#define WALK_RIGHT_FRAME_WIDHT_CUT 29.0f
-#define WALK_RIGHT_FRAME_HEIGHT_CUT 16.0f
 
-void InitSprite(MarioSprite_t *sprite, char *asset_dir, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int frameCount, int currentFrame){
-    sprite->spriteSheet = LoadTexture(asset_dir);
-    if (sprite->spriteSheet.id == 0) {
-        printf("[InitSprite] ERRO: Não foi possível carregar a textura: %s\n", asset_dir);
-        return;
-    }
-    // Depurando
-    sprite->sourceRec = original_frame_pos_scale;
-    sprite->frameSpeed = frameSpeed;
-    sprite->frameTimer = frameTimer;
-    sprite->frameCount = frameCount;
-    sprite->currentFrame = currentFrame;
+// (NORMAL MARIO) definições para as sprites dele andando (190x18 total -> 19,0x18/frame)
+#define NORMAL_MARIO_FRAME_WIDHT_CUT 19.0f
+#define NORMAL_MARIO_FRAME_HEIGHT_CUT 18.0f
+
+// (SUPER MARIO) definições para as sprites dele andando (228x34 total -> 19,0x34/frame)
+#define SUPER_MARIO_FRAME_WIDHT_CUT 19.0f
+#define SUPER_MARIO_FRAME_HEIGHT_CUT 34.0f
+
+// (FIRE MARIO) placeholders, falta alterar
+#define FIRE_MARIO_FRAME_WIDHT_CUT 19.0f
+#define FIRE_MARIO_FRAME_HEIGHT_CUT 34.0f
+
+// Escala que vai ser desenhado na tela a sprite
+#define MARIO_SPRITE_SCALE 2.0f
+
+// Função para inicializar as sprites
+void InitSprite(MarioSprite_t *sprite, Texture2D *texture, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int currentFrame){
+    sprite->spriteSheet = *texture; // Carregando a sprite já renderizada
+    sprite->sourceRec = original_frame_pos_scale; // Como o sheet será cortado
+    sprite->frameSpeed = frameSpeed; // Tempo com que os frames serão alterados
+    sprite->frameTimer = frameTimer; // Contador de tempo atual do frame
+    sprite->currentFrame = currentFrame; // Frame atual
+    sprite->revertAnim = false; // Inicia com a animação no sentido normal
 }
 
+// Função para inicializar a struct Mario
 void InitMario(Mario_t *Mario){
-    // Função genérica para inicializar a struct Mario
     printf("[InitMario] Running\n");
 
     Mario->position = (Vector2){300.0f, 300.0f}; // Posição inicial
-    Mario->facingRight = true; // Virado para direita
+    Mario->speed = (Vector2){0.0f, 0.0f}; // Inicia em repouso (vx, vy = 0)
+    Mario->invincible = false; // Inicia "vencível"
+    Mario->facingRight = false; // Virado para direita
+    Mario->canJump = true; // Consegue pular
+    Mario->powerUpState = STATE_SUPER; // Estado do mario (normal, super,)
     Mario->actualState = ACTION_WALKING; // Parado
+    Mario->lives=3; // Contador de vidas
+    Mario->score=0; // Pontuação
+    Mario->coins=0; // Quant. de moedas
 
-    // Iniciando cada sprite da struct de animações
-    // Andando para direita
-    InitSprite(&Mario->animations.walkRight, // Ponteiro para a sprite 
-        "assets/textures/mario/mario1-walkright.png", // Diretorio da spriteSheet
-        (Rectangle){0.0f, 0.0f,// Posição da origem dos frames
-                    WALK_RIGHT_FRAME_WIDHT_CUT, WALK_RIGHT_FRAME_HEIGHT_CUT}, // (ESCALA) Largura e altura de cada frame (ajustar depois individualmente)
+    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // Renderizando os arquivos das sprites
+    // PS: na notação [x:y], y é inclusivo 
+    // -> Super Mario
+    Mario->animations.superMarioSheet = LoadTexture("assets/textures/mario/supermario.png");
+    // No que foi renderizado contém:
+    // [0] Agachado para esquerda
+    // [1] Pulando para esquerda
+    // [2] Parando de correr, direção esquerda
+    // [3:5] Andando para esquerda
+    // [5] Parado virado para esquerda
+    // [6] Parado virado para direita
+    // [6:8] Andando para direita
+    // [9] Parando de correr, direção direita
+    // [10] Pulando para direita
+    // [11] Agachado para direita
+
+    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    // Pegando os dados do "Banco de dados" de animações
+    Mario->animations.smallMarioAnimDB = InitSmallMarioDB();
+    Mario->animations.superMarioAnimDB = InitSuperMarioDB();
+    Mario->animations.fireMarioAnimDB = InitFireMarioDB();
+
+    InitSprite(
+        &Mario->animations.activeSprite, // Ponteiro para a sprite 
+        &Mario->animations.superMarioSheet, // Ponteiro para a textura carregada
+        (Rectangle){0.0f, 0.0f, // Posição da origem dos frames
+                    SUPER_MARIO_FRAME_WIDHT_CUT, SUPER_MARIO_FRAME_HEIGHT_CUT}, // Largura e altura de cada frame
         0.1f, // Tempo de cada frame
         0.0f, // Cronometro para cada frame 
-        6, // Quantidade total de frames
-        0); // Frame atual
-    
-    // Andando para esquerda
-    InitSprite(&Mario->animations.walkLeft, // Ponteiro para a sprite 
-        "assets/textures/mario/mario1-walkleft.png", // Diretorio da spriteSheet
-        (Rectangle){0.0f, 0.0f,// Posição da origem dos frames
-                    WALK_RIGHT_FRAME_WIDHT_CUT, WALK_RIGHT_FRAME_HEIGHT_CUT}, // (ESCALA) Largura e altura de cada frame (ajustar depois individualmente)
-        0.1f, // Tempo de cada frame
-        0.0f, // Cronometro para cada frame 
-        6, // Quantidade total de frames
-        5); // Frame atual (Left é invertido, o parado é o ultimo)
+        6); // Frame atual
     
     printf("[InitMario] Finished\n");
 }
 
-void ChangeMarioSpritePosition(Mario_t *Mario, MarioSprite_t *sprite, float width, float height){
-    // Função para mover a sprite de lugar e desenhá-la
+// Função para mover a sprite de lugar e desenhá-la
+void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_scale){
+    MarioSprite_t *sprite = &Mario->animations.activeSprite;
+    
     // Posição
     sprite->destRec.x = Mario->position.x;
     sprite->destRec.y = Mario->position.y;
     // Proporção, tem que ser ajustada corretamente depois
-    sprite->destRec.width = width;
-    sprite->destRec.height = height;
+    sprite->destRec.width = width_scale;
+    sprite->destRec.height = height_scale;
 
     // Alterna o frame da sprite com base no contador
-    sprite->sourceRec.x = (float)sprite->currentFrame * WALK_RIGHT_FRAME_WIDHT_CUT;
-    printf("[ChangeMarioSpritePosition] SourceRec.x: %.2f\n", sprite->sourceRec.x);
+    sprite->sourceRec.x = (float)(sprite->currentFrame* sprite->frameWidthCut); // Tem que passar como parâmetro pra função, pode variar de uma sprite para outra
+    //printf("[ChangeMarioSpritePosition] SourceRec.x: %.2f\n", sprite->sourceRec.x); // Depuração
     Vector2 origin = {0, 0}; // Ponto de origem para rotação/escala (mantendo só porque, vai que né)
     
     // Finalmente desenhando
@@ -77,90 +106,112 @@ void ChangeMarioSpritePosition(Mario_t *Mario, MarioSprite_t *sprite, float widt
     );
 }
 
-void ChangeSpriteTimer(Mario_t *Mario, MarioSprite_t *sprite){
-    // Função para CONTROLAR a temporização dos frames das sprites
+// Função para CONTROLAR a temporização dos frames das sprites
+void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range){ // first_frame e end_frame são o intervalo da animação    
+    MarioSprite_t *sprite = &Mario->animations.activeSprite;
+
     // Acumula o tempo que passou desde o ultimo frame
     // Na pratica é um cronometro
     sprite->frameTimer += GetFrameTime();
-    // Depuração
-    //printf("[ChangeSpriteTimer] Timer: %.2f, Frame Atual:%d\n", sprite->frameTimer, sprite->currentFrame);
-    //printf("[ChangeSpriteTimer] GetFrameTime(): %f\n", GetFrameTime());
-
-    // Verificando se tá na hora de alterar o frame da animação
-    if(sprite->frameTimer >= sprite->frameSpeed){
+    if(sprite->frameTimer >= sprite->frameSpeed){ // Verificando se tá na hora de alterar o frame da animação
         sprite->frameTimer = 0; // Reinicia o cronometro
 
-        if(Mario->facingRight){ // Incrementa quando é para direita
-            sprite->currentFrame++; // Avança para o próximo frmae
+        // Movendo para DIREITA
+        if(Mario->facingRight){ 
+            sprite->currentFrame++;
+            if(sprite->currentFrame>range.end){
+                sprite->currentFrame=range.start;
+            }
         }
+        // Movendo para ESQUERDA
         else{
-            sprite->currentFrame--; // Decrementa quando é para esquerda
+            sprite->currentFrame--;
+            if(sprite->currentFrame<range.start){
+                sprite->currentFrame=range.end;
+            }
+            
         }
         
-        
-        // Restringindo as animações para valores permitidos
-        if(sprite->currentFrame >= sprite->frameCount && Mario->facingRight){ // Pra direita
-            sprite->currentFrame = 1; // O 0 é ele parado, andando é 1 em diante
-        }
-        else if(sprite->currentFrame <= 0 && !Mario->facingRight){ // Pra esquerda
-            sprite->currentFrame = sprite->frameCount-2; // O frameCount-1 é parado, andando é -2 até 0
-        }
     }
 }
 
-void IdleMario(Mario_t *Mario){
-    printf("[IdleMario] Running\n");
-    // Virado para direita:
-    if(Mario->facingRight){
-        Mario->animations.walkRight.currentFrame=0; // Frame dele parado
-        ChangeMarioSpritePosition(Mario, 
-            &Mario->animations.walkRight, // Ponteiro para a sprite a ser modificada
-            WALK_RIGHT_FRAME_WIDHT_CUT*4, WALK_RIGHT_FRAME_HEIGHT_CUT*4); // Proporção do desenho
-    }
-    // Virado para esquerda
-    else{
-        Mario->animations.walkLeft.currentFrame=5; // Frame dele parado
-        ChangeMarioSpritePosition(Mario, 
-            &Mario->animations.walkLeft, // Ponteiro para a sprite a ser modificada
-            WALK_RIGHT_FRAME_WIDHT_CUT*4, WALK_RIGHT_FRAME_HEIGHT_CUT*4); 
-    }
-}
-
-void WalkingMario(Mario_t *Mario){
-    // Virado para direita:
-    if(Mario->facingRight){
-        ChangeSpriteTimer(Mario, &Mario->animations.walkRight);
-        ChangeMarioSpritePosition(Mario, 
-            &Mario->animations.walkRight, // Ponteiro para a sprite a ser modificada
-            WALK_RIGHT_FRAME_WIDHT_CUT*4, WALK_RIGHT_FRAME_HEIGHT_CUT*4); // Proporção do desenho
-    }
-    // Virado para esquerda:
-    else{
-        ChangeSpriteTimer(Mario, &Mario->animations.walkLeft);
-        ChangeMarioSpritePosition(Mario, &Mario->animations.walkLeft, // Ponteiro para a sprite a ser modificada
-        WALK_RIGHT_FRAME_WIDHT_CUT*4, WALK_RIGHT_FRAME_HEIGHT_CUT*4); // Proporção do desenho
-    }
-}
-
+// Função para selecionar qual sprite será manipulada e desenhada
 void DrawMario(Mario_t *Mario){
-    // Função para selecionar qual sprite será manipulada e desenhada
-    switch(Mario->actualState){
-        // Caso esteja parado
+    // Ponteiros para manipular as infos de animação de Mario
+    MarioAnimDB_t *currentAnimDB = NULL; 
+    AnimData_t *currentAnimData = NULL; 
+    MarioSprite_t *activeSprite = &Mario->animations.activeSprite; // Sprite ativa
+    
+    // Selecionando o banco de dados das animações, conforme o estado atual do Mario e alterando sheet/tamanho dos frames no activeSprite
+    switch(Mario->powerUpState){
+        case STATE_SMALL:
+            currentAnimDB = &Mario->animations.smallMarioAnimDB;
+            activeSprite->spriteSheet = Mario->animations.smallMarioSheet;
+            activeSprite->frameWidthCut = NORMAL_MARIO_FRAME_WIDHT_CUT;
+            activeSprite->frameHeightCut = NORMAL_MARIO_FRAME_HEIGHT_CUT;
+            break;
+        case STATE_SUPER:
+            currentAnimDB = &Mario->animations.superMarioAnimDB;
+            activeSprite->spriteSheet = Mario->animations.superMarioSheet;
+            activeSprite->frameWidthCut = SUPER_MARIO_FRAME_WIDHT_CUT;
+            activeSprite->frameHeightCut = SUPER_MARIO_FRAME_HEIGHT_CUT;
+            break;
+        case STATE_FIRE:
+            currentAnimDB = &Mario->animations.fireMarioAnimDB;
+            activeSprite->spriteSheet = Mario->animations.fireMarioSheet;
+            activeSprite->frameWidthCut = FIRE_MARIO_FRAME_WIDHT_CUT;
+            activeSprite->frameHeightCut = FIRE_MARIO_FRAME_HEIGHT_CUT;
+            break;
+    }
+
+    // Selecionando os dados da animação atual
+    switch (Mario->actualState) {
         case ACTION_IDLE:
-            IdleMario(Mario);
+            currentAnimData = &currentAnimDB->idle;
             break;
         case ACTION_WALKING:
-            WalkingMario(Mario);
+            currentAnimData = &currentAnimDB->walking;
             break;
         case ACTION_JUMPING:
-
+            currentAnimData = &currentAnimDB->jumping;
             break;
-        case ACTION_FALLING:
-
+        case ACTION_SLIDE:
+            currentAnimData = &currentAnimDB->slide;
             break;
-        default:
-            printf("[UpdateMarioSprite] ERRO!");
+        case ACTION_CROUCH:
+            currentAnimData = &currentAnimDB->crouch;
+            break;
+        case ACTION_DEATH:
+            currentAnimData = &currentAnimDB->death;
             break;
     }
+
+    // Usando os dados selecionados para animar e desenhar
+    if(currentAnimData->isLooping){ // Se é animação com mais de 1 frame
+        FrameRange_t range;
+
+        // Pegando o range da animação
+        if(Mario->facingRight){ // Virado para direita
+            range = currentAnimData->rightAnimFrames;
+        }
+        else{ // Virado para esquerda
+            range = currentAnimData->leftAnimFrames;
+        }
+        ChangeSpriteTimer(Mario, range); // Função que verifica o momento de alterar o frame, e o faz quando chega
+    }
+    else{ // Se é frame fixo
+        if(Mario->facingRight){ // Virado para direita
+            activeSprite->currentFrame = currentAnimData->freezedFrameRight;
+        }
+        else{ // Esquerda
+            activeSprite->currentFrame = currentAnimData->freezedFrameLeft;
+        }
+    }
+
+    // Desenha a sprite na tela
+    ChangeMarioSpritePosition(
+        Mario,
+        activeSprite->frameWidthCut * MARIO_SPRITE_SCALE,
+        activeSprite->frameHeightCut * MARIO_SPRITE_SCALE);
 }
 
