@@ -8,7 +8,7 @@ GameScene CreateGameScene(const char *backgroundImagePath) {
     
     scene.background = LoadTexture(backgroundImagePath); // Carrega a textura do background
     scene.scale = (float)GetScreenHeight() / (scene.background.height/2); // Calcula o fator de escala entre o background e a tela
-    scene.scaledBgWidth = scene.background.width * scene.scale; // Calcula a largura do background após o escalonamento
+    scene.scaledBackgroundWidth = scene.background.width * scene.scale; // Calcula a largura do background após o escalonamento
     
     // Define as plataformas para o chão com suas coordenadas originais (em pixels da imagem) em formato {x, y, largura, altura}
     Rectangle platformRects[] = {
@@ -39,7 +39,7 @@ GameScene CreateGameScene(const char *backgroundImagePath) {
 void DrawGameScene(GameScene scene) {
 
     Rectangle sourceRec = { 0, 0, scene.background.width, scene.background.height/2 }; // Define o retângulo de origem
-    Rectangle destRec = { 0, 0, scene.scaledBgWidth, (float)GetScreenHeight() }; // Define o retângulo de destino
+    Rectangle destRec = { 0, 0, scene.scaledBackgroundWidth, (float)GetScreenHeight() }; // Define o retângulo de destino
     
     // Desenha o background na tela
     DrawTexturePro(
