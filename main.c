@@ -9,9 +9,11 @@ Mario_t Mario;
 float timer = 0.0f;
 
 int main(void){
-    InitWindow(800, 450, "UniMarioBros");
+    InitWindow(800, 600, "UniMarioBros");
 
     SetTargetFPS(60);
+
+    GameScene scene = CreateGameScene("assets/textures/background1.png"); // Função da biblioteca Scene para configurar o cenário
 
     InitMario(&Mario); // Inicializando as structs do Mario com valores
     
@@ -29,11 +31,14 @@ int main(void){
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
-
+        
+        DrawGameScene(scene); // Função da biblioteca Scene para desenhar o cenário
+        
         DrawMario(&Mario);
         EndDrawing();
     }
 
+    UnloadGameScene(scene); // Função da biblioteca Scene para liberar os recursos alocados dinamicamente
     CloseWindow();
     return 0;
 }
