@@ -40,8 +40,12 @@ typedef struct{
     Texture2D smallMarioSheet;
     Texture2D superMarioSheet;
     Texture2D fireMarioSheet;
-    // Sprite que será desenhada e animada
-    MarioSprite_t activeSprite; 
+    // Sprites de cada estado do Mario
+    MarioSprite_t smallMarioSprite;
+    MarioSprite_t superMarioSprite;
+    MarioSprite_t fireMarioSprite;
+    // Ponteiro para a sprite que será desenhada e animada
+    MarioSprite_t *activeSprite; 
     // Banco de dados de cada animação do Mario com base no PowerUp
     MarioAnimDB_t smallMarioAnimDB; // Mario normal
     MarioAnimDB_t superMarioAnimDB; // Super mario
@@ -65,7 +69,7 @@ typedef struct{
 } Mario_t;
 
 // Protótipos de funções:
-void InitSprite(MarioSprite_t *sprite, Texture2D *texture, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int currentFrame);
+void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int currentFrame);
 void InitMario(Mario_t *Mario);
 void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_scale);
 void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range);

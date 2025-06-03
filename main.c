@@ -14,6 +14,7 @@ int main(void){
     SetTargetFPS(60);
 
     InitMario(&Mario); // Inicializando as structs do Mario com valores
+    Mario.actualState = ACTION_WALKING;
     
     while (!WindowShouldClose()) {
         
@@ -21,10 +22,15 @@ int main(void){
         // Estrutura basica pra testar troca de animação
         if(timer<=5.0f){
            timer += GetFrameTime();
+           Mario.powerUpState = STATE_SUPER;
+        }
+        else if(timer<=10.0f){
+            timer += GetFrameTime();
+            Mario.powerUpState = STATE_SMALL;
+            //Mario.facingRight = !Mario.facingRight;
         }
         else{
             timer = 0.0f;
-            Mario.facingRight = !Mario.facingRight;
         }
 
         BeginDrawing();

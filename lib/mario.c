@@ -4,29 +4,30 @@
 #include "mario_animdb.h"
 
 
-// (NORMAL MARIO) definições para as sprites dele andando (190x18 total -> 19,0x18/frame)
-#define NORMAL_MARIO_FRAME_WIDHT_CUT 19.0f
-#define NORMAL_MARIO_FRAME_HEIGHT_CUT 18.0f
+// (NORMAL MARIO) definições para as sprites dele andando (192x18 total -> 16x18/frame)
+#define NORMAL_MARIO_FRAME_WIDHT_CUT 16.0f
+#define NORMAL_MARIO_FRAME_HEIGHT_CUT 16.0f
 
-// (SUPER MARIO) definições para as sprites dele andando (228x34 total -> 19,0x34/frame)
-#define SUPER_MARIO_FRAME_WIDHT_CUT 19.0f
-#define SUPER_MARIO_FRAME_HEIGHT_CUT 34.0f
+// (SUPER MARIO) definições para as sprites dele andando (228x34 total -> 16,0x34/frame)
+#define SUPER_MARIO_FRAME_WIDHT_CUT 16.0f
+#define SUPER_MARIO_FRAME_HEIGHT_CUT 30.0f
 
 // (FIRE MARIO) placeholders, falta alterar
-#define FIRE_MARIO_FRAME_WIDHT_CUT 19.0f
+#define FIRE_MARIO_FRAME_WIDHT_CUT 16.0f
 #define FIRE_MARIO_FRAME_HEIGHT_CUT 34.0f
 
 // Escala que vai ser desenhado na tela a sprite
 #define MARIO_SPRITE_SCALE 2.0f
 
-// Função para inicializar as sprites
-void InitSprite(MarioSprite_t *sprite, Texture2D *texture, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int currentFrame){
-    sprite->spriteSheet = *texture; // Carregando a sprite já renderizada
+// Função para inicializar a sprite do Mario com os parâmetros para o Small Mario parado
+void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int currentFrame){
+    sprite->spriteSheet = texture; // Carregando a sprite já renderizada
     sprite->sourceRec = original_frame_pos_scale; // Como o sheet será cortado
     sprite->frameSpeed = frameSpeed; // Tempo com que os frames serão alterados
     sprite->frameTimer = frameTimer; // Contador de tempo atual do frame
     sprite->currentFrame = currentFrame; // Frame atual
-    sprite->revertAnim = false; // Inicia com a animação no sentido normal
+    sprite->frameWidthCut = original_frame_pos_scale.width;
+    sprite->frameHeightCut = original_frame_pos_scale.height;
 }
 
 // Função para inicializar a struct Mario
@@ -36,52 +37,61 @@ void InitMario(Mario_t *Mario){
     Mario->position = (Vector2){300.0f, 300.0f}; // Posição inicial
     Mario->speed = (Vector2){0.0f, 0.0f}; // Inicia em repouso (vx, vy = 0)
     Mario->invincible = false; // Inicia "vencível"
-    Mario->facingRight = false; // Virado para direita
+    Mario->facingRight = true; // Virado para direita
     Mario->canJump = true; // Consegue pular
-    Mario->powerUpState = STATE_SUPER; // Estado do mario (normal, super,)
-    Mario->actualState = ACTION_WALKING; // Parado
+    Mario->powerUpState = STATE_SMALL; // Estado do mario (normal, super,)
+    Mario->actualState = ACTION_IDLE; // Parado
     Mario->lives=3; // Contador de vidas
     Mario->score=0; // Pontuação
     Mario->coins=0; // Quant. de moedas
 
-    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // Renderizando os arquivos das sprites
-    // PS: na notação [x:y], y é inclusivo 
-    // -> Super Mario
     Mario->animations.superMarioSheet = LoadTexture("assets/textures/mario/supermario.png");
-    // No que foi renderizado contém:
-    // [0] Agachado para esquerda
-    // [1] Pulando para esquerda
-    // [2] Parando de correr, direção esquerda
-    // [3:5] Andando para esquerda
-    // [5] Parado virado para esquerda
-    // [6] Parado virado para direita
-    // [6:8] Andando para direita
-    // [9] Parando de correr, direção direita
-    // [10] Pulando para direita
-    // [11] Agachado para direita
+    Mario->animations.smallMarioSheet = LoadTexture("assets/textures/mario/smallmario.png");
 
-    // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // Pegando os dados do "Banco de dados" de animações
     Mario->animations.smallMarioAnimDB = InitSmallMarioDB();
     Mario->animations.superMarioAnimDB = InitSuperMarioDB();
     Mario->animations.fireMarioAnimDB = InitFireMarioDB();
 
+    // Iniciando as sprites
+    // -> Mario Normal
     InitSprite(
-        &Mario->animations.activeSprite, // Ponteiro para a sprite 
-        &Mario->animations.superMarioSheet, // Ponteiro para a textura carregada
+        &Mario->animations.smallMarioSprite, // Ponteiro para a sprite 
+        Mario->animations.smallMarioSheet, // Ponteiro para a textura carregada
+        (Rectangle){0.0f, 0.0f, // Posição da origem dos frames
+                    NORMAL_MARIO_FRAME_WIDHT_CUT, NORMAL_MARIO_FRAME_HEIGHT_CUT}, // Largura e altura de cada frame
+        0.1f, // Tempo de cada frame
+        0.0f, // Cronometro para cada frame 
+        7); // Frame atual
+    // -> Super Mario
+    InitSprite(
+        &Mario->animations.superMarioSprite, // Ponteiro para a sprite 
+        Mario->animations.superMarioSheet, // Ponteiro para a textura carregada
         (Rectangle){0.0f, 0.0f, // Posição da origem dos frames
                     SUPER_MARIO_FRAME_WIDHT_CUT, SUPER_MARIO_FRAME_HEIGHT_CUT}, // Largura e altura de cada frame
         0.1f, // Tempo de cada frame
         0.0f, // Cronometro para cada frame 
         6); // Frame atual
+    // -> Fire Mario (placeholder atualmente)
+    InitSprite(
+        &Mario->animations.fireMarioSprite, // Ponteiro para a sprite 
+        Mario->animations.fireMarioSheet, // Ponteiro para a textura carregada
+        (Rectangle){0.0f, 0.0f, // Posição da origem dos frames
+                    FIRE_MARIO_FRAME_WIDHT_CUT, FIRE_MARIO_FRAME_HEIGHT_CUT}, // Largura e altura de cada frame
+        0.1f, // Tempo de cada frame
+        0.0f, // Cronometro para cada frame 
+        6); // Frame atual
+
+    // -> Iniciando com a sprite do mario normal
+    Mario->animations.activeSprite = &Mario->animations.smallMarioSprite;
     
     printf("[InitMario] Finished\n");
 }
 
 // Função para mover a sprite de lugar e desenhá-la
 void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_scale){
-    MarioSprite_t *sprite = &Mario->animations.activeSprite;
+    MarioSprite_t *sprite = Mario->animations.activeSprite;
     
     // Posição
     sprite->destRec.x = Mario->position.x;
@@ -91,7 +101,7 @@ void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_s
     sprite->destRec.height = height_scale;
 
     // Alterna o frame da sprite com base no contador
-    sprite->sourceRec.x = (float)(sprite->currentFrame* sprite->frameWidthCut); // Tem que passar como parâmetro pra função, pode variar de uma sprite para outra
+    sprite->sourceRec.x = (float)(sprite->currentFrame * sprite->frameWidthCut); // Tem que passar como parâmetro pra função, pode variar de uma sprite para outra
     //printf("[ChangeMarioSpritePosition] SourceRec.x: %.2f\n", sprite->sourceRec.x); // Depuração
     Vector2 origin = {0, 0}; // Ponto de origem para rotação/escala (mantendo só porque, vai que né)
     
@@ -106,9 +116,24 @@ void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_s
     );
 }
 
+// Função auxiliar para não permitir um index fora do range na troca de animações
+void ConstrainIndex(Mario_t *Mario, FrameRange_t range){
+    MarioSprite_t *sprite = Mario->animations.activeSprite;
+
+    if(sprite->currentFrame < range.start){
+        sprite->currentFrame = range.start;
+    }
+    else if(sprite->currentFrame > range.end){
+        sprite->currentFrame = range.end;
+    }
+}
+
 // Função para CONTROLAR a temporização dos frames das sprites
 void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range){ // first_frame e end_frame são o intervalo da animação    
-    MarioSprite_t *sprite = &Mario->animations.activeSprite;
+    MarioSprite_t *sprite = Mario->animations.activeSprite;
+
+    // Corrigindo o range caso esteja fora do intervalo
+    ConstrainIndex(Mario, range);
 
     // Acumula o tempo que passou desde o ultimo frame
     // Na pratica é um cronometro
@@ -140,27 +165,20 @@ void DrawMario(Mario_t *Mario){
     // Ponteiros para manipular as infos de animação de Mario
     MarioAnimDB_t *currentAnimDB = NULL; 
     AnimData_t *currentAnimData = NULL; 
-    MarioSprite_t *activeSprite = &Mario->animations.activeSprite; // Sprite ativa
     
-    // Selecionando o banco de dados das animações, conforme o estado atual do Mario e alterando sheet/tamanho dos frames no activeSprite
+    // Selecionando o banco de dados das animações, conforme o estado atual do Mario e alterando o endereço para a sprite ativa
     switch(Mario->powerUpState){
         case STATE_SMALL:
-            currentAnimDB = &Mario->animations.smallMarioAnimDB;
-            activeSprite->spriteSheet = Mario->animations.smallMarioSheet;
-            activeSprite->frameWidthCut = NORMAL_MARIO_FRAME_WIDHT_CUT;
-            activeSprite->frameHeightCut = NORMAL_MARIO_FRAME_HEIGHT_CUT;
+            currentAnimDB = &Mario->animations.smallMarioAnimDB; // Atualiza o DB
+            Mario->animations.activeSprite = &Mario->animations.smallMarioSprite; // Pega o endereço correto para a sprite do estado atual
             break;
         case STATE_SUPER:
-            currentAnimDB = &Mario->animations.superMarioAnimDB;
-            activeSprite->spriteSheet = Mario->animations.superMarioSheet;
-            activeSprite->frameWidthCut = SUPER_MARIO_FRAME_WIDHT_CUT;
-            activeSprite->frameHeightCut = SUPER_MARIO_FRAME_HEIGHT_CUT;
+            currentAnimDB = &Mario->animations.superMarioAnimDB; // Atualiza o DB
+            Mario->animations.activeSprite = &Mario->animations.superMarioSprite; // Pega o endereço correto para a sprite do estado atual
             break;
         case STATE_FIRE:
-            currentAnimDB = &Mario->animations.fireMarioAnimDB;
-            activeSprite->spriteSheet = Mario->animations.fireMarioSheet;
-            activeSprite->frameWidthCut = FIRE_MARIO_FRAME_WIDHT_CUT;
-            activeSprite->frameHeightCut = FIRE_MARIO_FRAME_HEIGHT_CUT;
+            currentAnimDB = &Mario->animations.fireMarioAnimDB; // Atualiza o DB
+            Mario->animations.activeSprite = &Mario->animations.fireMarioSprite; // Pega o endereço correto para a sprite do estado atual
             break;
     }
 
@@ -201,17 +219,17 @@ void DrawMario(Mario_t *Mario){
     }
     else{ // Se é frame fixo
         if(Mario->facingRight){ // Virado para direita
-            activeSprite->currentFrame = currentAnimData->freezedFrameRight;
+            Mario->animations.activeSprite->currentFrame = currentAnimData->freezedFrameRight;
         }
         else{ // Esquerda
-            activeSprite->currentFrame = currentAnimData->freezedFrameLeft;
+            Mario->animations.activeSprite->currentFrame = currentAnimData->freezedFrameLeft;
         }
     }
 
     // Desenha a sprite na tela
     ChangeMarioSpritePosition(
         Mario,
-        activeSprite->frameWidthCut * MARIO_SPRITE_SCALE,
-        activeSprite->frameHeightCut * MARIO_SPRITE_SCALE);
+        Mario->animations.activeSprite->frameWidthCut * MARIO_SPRITE_SCALE,
+        Mario->animations.activeSprite->frameHeightCut * MARIO_SPRITE_SCALE);
 }
 
