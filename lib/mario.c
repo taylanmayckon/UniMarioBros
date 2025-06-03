@@ -14,7 +14,7 @@
 
 // (FIRE MARIO) placeholders, falta alterar
 #define FIRE_MARIO_FRAME_WIDHT_CUT 16.0f
-#define FIRE_MARIO_FRAME_HEIGHT_CUT 34.0f
+#define FIRE_MARIO_FRAME_HEIGHT_CUT 31.0f
 
 // Escala que vai ser desenhado na tela a sprite
 #define MARIO_SPRITE_SCALE 2.0f
@@ -48,6 +48,7 @@ void InitMario(Mario_t *Mario){
     // Renderizando os arquivos das sprites
     Mario->animations.superMarioSheet = LoadTexture("assets/textures/mario/supermario.png");
     Mario->animations.smallMarioSheet = LoadTexture("assets/textures/mario/smallmario.png");
+    Mario->animations.fireMarioSheet = LoadTexture("assets/textures/mario/firemario.png");
 
     // Pegando os dados do "Banco de dados" de animações
     Mario->animations.smallMarioAnimDB = InitSmallMarioDB();

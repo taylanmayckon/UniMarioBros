@@ -18,7 +18,7 @@ typedef enum{
     ACTION_SLIDE, // Mario deslizando (parando de correr)
     ACTION_CROUCH, // Mario abaixado
     ACTION_DEATH, // Morte
-
+    ACTION_THROW, // Jogar bola de fogo
 } MarioActionStates_t;
 
 // Struct para as animações do Mário

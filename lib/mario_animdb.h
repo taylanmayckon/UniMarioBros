@@ -26,6 +26,7 @@ typedef struct{
     AnimData_t slide; // Deslizando
     AnimData_t crouch; // Abaixado
     AnimData_t death; // Morte
+    AnimData_t throw; // Jogar bola de fogo
 } MarioAnimDB_t;
 
 // Prototipo de funções
