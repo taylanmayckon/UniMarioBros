@@ -62,6 +62,7 @@ typedef struct{
     int coins; // Quant. de moedas
     bool invincible; // Quando ele é atacado fica invencível se tiver cogumelo
     bool canJump; // Booleano para indicar se pode pular ou não
+    bool canMove; // Booleano para indicar se pode se mover ou não 
     bool facingRight; // Se esta olhando para a direita ou não (1: direita, 0: não)
     MarioPowerUpStates_t powerUpState; // Estado atual do Mario (ex: normal, grande)
     MarioActionStates_t actualState; // Ação atual do Mario (parado, correndo, pulando...)
