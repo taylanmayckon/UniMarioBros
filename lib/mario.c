@@ -94,8 +94,13 @@ void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_s
     MarioSprite_t *sprite = Mario->animations.activeSprite;
     
     // Posição
-    sprite->destRec.x = Mario->position.x;
-    sprite->destRec.y = Mario->position.y;
+    // Como o frame começa a ser desenhado no canto superior esquerdo, precisa de offsets
+    // (LEMBRA DE ALINHAR COM O CÓDIGO DE COLISÕES)
+    float offset_x = width_scale; 
+    float offset_y = height_scale;
+    // Aplicando o desenho com offset
+    sprite->destRec.x = Mario->position.x - offset_x;
+    sprite->destRec.y = Mario->position.y - offset_y;
     // Proporção, tem que ser ajustada corretamente depois
     sprite->destRec.width = width_scale;
     sprite->destRec.height = height_scale;
