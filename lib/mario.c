@@ -35,15 +35,20 @@
 
 void UpdateMario(Mario_t *Mario) {
     // Se estiver na animação de morte, o UpdateMario retorna já aqui
-    if (Mario->isDying) {
+    if(Mario->isDying){
         Mario->speed.x = 0; // Para garantir que não deslize se morrer andando
         return;
     }
 
     // Se tiver em alguma outra animação (tipo pegar cogumelo/flor), UpdateMario retorna já aqui
-    if (!Mario->canMove) {
+    if(!Mario->canMove){
         Mario->speed.x = 0;
         return;
+    }
+
+    // Limpando o estado agachado para não bugar
+    if(Mario->actualState==ACTION_CROUCH){
+        Mario->actualState = ACTION_IDLE;
     }
 
     // Aqui é física, depois confere se tá certo os cálculos pra evitar algum bug 
@@ -65,7 +70,7 @@ void UpdateMario(Mario_t *Mario) {
     float currentMaxMoveSpeed = isTryingToRun ? MARIO_RUN_SPEED : MARIO_WALK_SPEED; // Implementa uma lógica aqui para incrementar/decrementar até o valor desejado de Vx
 
     // Parar a animação de pulo quando toca o chão
-    if (isOnGround && Mario->actualState == ACTION_JUMPING) {
+    if(isOnGround && Mario->actualState == ACTION_JUMPING){
         Mario->actualState = ACTION_IDLE; // Mario parado
     }
 
@@ -75,37 +80,37 @@ void UpdateMario(Mario_t *Mario) {
     bool wantsToCrouch = IsKeyDown(KEY_DOWN);
 
     // Agacha se estiver no chão
-    if (isOnGround && wantsToCrouch && Mario->powerUpState != STATE_SMALL && Mario->actualState != ACTION_JUMPING) {
+    if(isOnGround && wantsToCrouch && Mario->powerUpState != STATE_SMALL && Mario->actualState != ACTION_JUMPING){
         Mario->actualState = ACTION_CROUCH;
         Mario->speed.x = 0; // Trava movimento quando agachado
     }
 
     // Movimento no eixo x
     // Se não tiver agachado (para super/fire mario) ou se não puder agachar (para small mario)
-    else if (Mario->actualState != ACTION_CROUCH || !isOnGround || Mario->powerUpState == STATE_SMALL) {
+    else if(Mario->actualState != ACTION_CROUCH || !isOnGround || Mario->powerUpState == STATE_SMALL){
         // Se estava agachado e soltou a tecla (ou não está mais no chão), volta ao estado IDLE
-        if (Mario->actualState == ACTION_CROUCH && (!wantsToCrouch || !isOnGround)) {
+        if(Mario->actualState == ACTION_CROUCH && (!wantsToCrouch || !isOnGround)){
             Mario->actualState = ACTION_IDLE;
         }
 
-        if (wantsToMoveLeft && !wantsToMoveRight) {
+        if(wantsToMoveLeft && !wantsToMoveRight){
             Mario->speed.x = -currentMaxMoveSpeed;
             Mario->facingRight = false;
-            if (isOnGround) Mario->actualState = ACTION_WALKING;
-        } else if (wantsToMoveRight && !wantsToMoveLeft) {
+            if(isOnGround) Mario->actualState = ACTION_WALKING;
+        } else if(wantsToMoveRight && !wantsToMoveLeft){
             Mario->speed.x = currentMaxMoveSpeed;
             Mario->facingRight = true;
-            if (isOnGround) Mario->actualState = ACTION_WALKING;
-        } else { // Nenhuma tecla de movimento horizontal pressionada ou ambas pressionadas
-            if (isOnGround){
+            if(isOnGround) Mario->actualState = ACTION_WALKING;
+        } else{ // Nenhuma tecla de movimento horizontal pressionada ou ambas pressionadas
+            if(isOnGround){
                 // Lógica de Slide: Se estava andando e soltou as teclas com certa velocidade
                 // (tem que rever toda a física, e a lógica de ativação do slide, tá muito diferente do jogo base kkkkkkkkkk)
-                if (Mario->actualState == ACTION_WALKING && fabsf(Mario->speed.x) > MARIO_WALK_SPEED * 0.5f) {
+                if(Mario->actualState == ACTION_WALKING && fabsf(Mario->speed.x) > MARIO_WALK_SPEED * 0.5f){
                      Mario->actualState = ACTION_SLIDE;
                 }
 
-                if (Mario->actualState == ACTION_SLIDE) {
-                    if (Mario->facingRight) { // Deslizando para a direita (após mover para a direita)
+                if(Mario->actualState == ACTION_SLIDE){
+                    if(Mario->facingRight){ // Deslizando para a direita (após mover para a direita)
                         Mario->speed.x -= SLIDE_DECELERATION * dt; 
                         if (Mario->speed.x <= 0.0f) {
                             Mario->speed.x = 0.0f;
@@ -113,29 +118,29 @@ void UpdateMario(Mario_t *Mario) {
                         }
                     } else { // Deslizando para a esquerda
                         Mario->speed.x += SLIDE_DECELERATION * dt;
-                        if (Mario->speed.x >= 0.0f) {
+                        if(Mario->speed.x >= 0.0f){
                             Mario->speed.x = 0.0f;
                             Mario->actualState = ACTION_IDLE;
                         }
                     }
-                } else { // Desaceleração normal (atrito)
+                } else{ // Desaceleração normal (atrito)
                     // Tentativa de fricção independente do FPS, na minha cabeça fica mais suave, não testei diferente
                     // PS: Fica suave porque dessa forma sai de forma exponencial a desaceleração, e não multiplicativa, calcular depois pra ter certeza
                     Mario->speed.x *= powf(GROUND_FRICTION_COEFF, dt * 60.0f); 
-                    if (fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD) { 
+                    if(fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD){ 
                         // Esse fabs é para economizar o if no caso da velocidade negativo, fabs pega o valor absoluto (positivo) do float, trato em módulo a condição
                         Mario->speed.x = 0.0f;
-                        if (Mario->actualState == ACTION_WALKING) Mario->actualState = ACTION_IDLE;
+                        if(Mario->actualState == ACTION_WALKING) Mario->actualState = ACTION_IDLE;
                     }
                 }
-            } else { // No ar (tem atrito do ar aí)
+            } else{ // No ar (tem atrito do ar aí)
                  Mario->speed.x *= powf(AIR_FRICTION_COEFF, dt * 60.0f);
                  if (fabsf(Mario->speed.x) < 1.0f) { // Reduzir mais drasticamente no ar se sem input
                     Mario->speed.x *= 0.95f;
                  }
             }
              // Se a Vx zerou, e não está pulando, deslizando ou agachando, fica parado
-            if (fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD && isOnGround && Mario->actualState != ACTION_SLIDE && Mario->actualState != ACTION_CROUCH) {
+            if(fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD && isOnGround && Mario->actualState != ACTION_SLIDE && Mario->actualState != ACTION_CROUCH){
                 Mario->actualState = ACTION_IDLE;
             }
         }
@@ -150,7 +155,7 @@ void UpdateMario(Mario_t *Mario) {
     }
 
     // Gravidade
-    if(!isOnGround) {
+    if(!isOnGround){
         Mario->speed.y += GRAVITY * dt;
         // Limitar velocidade de queda
         if(Mario->speed.y > MAX_FALL_SPEED){
@@ -169,7 +174,7 @@ void UpdateMario(Mario_t *Mario) {
 
     // Colisão com chão
     // PLACEHOLDER ATUALMENTE, TEM QUE CONFERIR COM CÓDIGO DE COLISÃO
-    if (Mario->position.y >= GROUND_Y) {
+    if(Mario->position.y >= GROUND_Y){
         Mario->position.y = GROUND_Y;
         if (Mario->speed.y > 0) { // Só zera a velocidade Y se estava caindo
             Mario->speed.y = 0;
@@ -177,22 +182,22 @@ void UpdateMario(Mario_t *Mario) {
         isOnGround = true; // Garante que está no chão para a próxima iteração ou checagens finais
 
         // Se o estado era pulando e agora tocou o chão:
-        if (Mario->actualState == ACTION_JUMPING) {
+        if(Mario->actualState == ACTION_JUMPING){
             // Se ainda tem velocidade horizontal e não está tentando agachar, muda para andando
-            if (fabsf(Mario->speed.x) > STOP_SPEED_THRESHOLD && !wantsToCrouch) {
+            if(fabsf(Mario->speed.x) > STOP_SPEED_THRESHOLD && !wantsToCrouch){
                 Mario->actualState = ACTION_WALKING;
             }
             // Se está tentando agachar ao aterrissar (e pode agachar).
-            else if (wantsToCrouch && Mario->powerUpState != STATE_SMALL) {
+            else if(wantsToCrouch && Mario->powerUpState != STATE_SMALL){
                  Mario->actualState = ACTION_CROUCH;
                  Mario->speed.x = 0; // Para de mover ao agachar na aterrissagem
             }
             // Senão, fica parado.
-            else {
+            else{
                 Mario->actualState = ACTION_IDLE;
             }
         }
-    } else {
+    } else{
         isOnGround = false; // Confirma que não está no chão
         // Se não está no chão e o estado não é de pulo (ex: escorregou de uma plataforma)
         if (Mario->actualState != ACTION_JUMPING && Mario->actualState != ACTION_DEATH) {
@@ -202,7 +207,7 @@ void UpdateMario(Mario_t *Mario) {
 
     // Ajuste final
     // Se está no chão, praticamente sem Vx, e não está agachado ou deslizando, deixa ele parado
-    if (isOnGround && fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD && Mario->actualState != ACTION_CROUCH && Mario->actualState != ACTION_SLIDE) {
+    if(isOnGround && fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD && Mario->actualState != ACTION_CROUCH && Mario->actualState != ACTION_SLIDE){
         Mario->actualState = ACTION_IDLE;
     }
 }
@@ -227,7 +232,7 @@ void InitMario(Mario_t *Mario){
     Mario->speed = (Vector2){0.0f, 0.0f}; // Inicia em repouso (vx, vy = 0)
     Mario->invincible = false; // Inicia "vencível"
     Mario->facingRight = true; // Virado para direita
-    Mario->powerUpState = STATE_SMALL; // Estado do mario (normal, super,)
+    Mario->powerUpState = STATE_SUPER; // Estado do mario (normal, super,)
     Mario->actualState = ACTION_IDLE; // Parado
     Mario->lives=3; // Contador de vidas
     Mario->score=0; // Pontuação
