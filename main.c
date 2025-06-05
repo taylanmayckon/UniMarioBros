@@ -17,16 +17,15 @@ int main(void){
     GameScene scene = CreateGameScene("assets/textures/background.png"); // Função da biblioteca Scene para configurar o cenário
 
     InitMario(&Mario); // Inicializando as structs do Mario com valores
-    // Mario.actualState = ACTION_WALKING;
     
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
         
         DrawGameScene(scene); // Função da biblioteca Scene para desenhar o cenário
-        UpdateMario(&Mario);
-        
-        DrawMario(&Mario);
+
+        UpdateMario(&Mario); // Pega a nova posição do Mario
+        DrawMario(&Mario); // Atualiza a posição que a sprite é desenhada na tela
         EndDrawing();
     }
 

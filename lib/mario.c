@@ -23,7 +23,7 @@
 // Constantes de Física e Movimento 
 #define MARIO_WALK_SPEED 200.0f // Velocidade de caminhada base
 #define MARIO_RUN_SPEED 320.0f // Velocidade de corrida
-#define MARIO_JUMP_STRENGTH 520.0f // Força inicial do pulo
+#define MARIO_JUMP_STRENGTH 730.0f // Força inicial do pulo
 #define GRAVITY 1300.0f // Aceleração da gravidade (pixels/s^2)
 #define MAX_FALL_SPEED 650.0f // Velocidade máxima de queda
 #define GROUND_FRICTION_COEFF 0.85f // Coeficiente de atrito com o chão (quanto menor, maior o atrito)
@@ -53,7 +53,16 @@ void UpdateMario(Mario_t *Mario) {
 
     bool isTryingToRun = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT); // Detecta corrida (tá no shift)
 
-    float currentMaxMoveSpeed = isTryingToRun ? MARIO_RUN_SPEED : MARIO_WALK_SPEED; // 
+    // Animação pra dar impressão que ele tá correndo ao jogador
+    if(isTryingToRun){ // CORRENDO: Aumenta o FPS da animação
+        Mario->animations.activeSprite->frameSpeed=0.06f;
+    }
+    else{ // Andando, FPS normal
+        Mario->animations.activeSprite->frameSpeed=0.1f;
+    }
+
+    // Alterna instantaneamente da velocidade normal para correndo
+    float currentMaxMoveSpeed = isTryingToRun ? MARIO_RUN_SPEED : MARIO_WALK_SPEED; // Implementa uma lógica aqui para incrementar/decrementar até o valor desejado de Vx
 
     // Parar a animação de pulo quando toca o chão
     if (isOnGround && Mario->actualState == ACTION_JUMPING) {
@@ -218,7 +227,7 @@ void InitMario(Mario_t *Mario){
     Mario->speed = (Vector2){0.0f, 0.0f}; // Inicia em repouso (vx, vy = 0)
     Mario->invincible = false; // Inicia "vencível"
     Mario->facingRight = true; // Virado para direita
-    Mario->powerUpState = STATE_SUPER; // Estado do mario (normal, super,)
+    Mario->powerUpState = STATE_SMALL; // Estado do mario (normal, super,)
     Mario->actualState = ACTION_IDLE; // Parado
     Mario->lives=3; // Contador de vidas
     Mario->score=0; // Pontuação
