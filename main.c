@@ -1,31 +1,4 @@
-/*******************************************************************************************
- * UniMarioBros Unificado em um único arquivo main.c (sem textura do chão, mantendo física)
- *
- * Ajustes realizados:
- *  - Não desenha a textura do chão (plataforma 0), apenas mantém sua colisão
- *  - Continua desenhando apenas as plataformas suspensas e as dinâmicas
- *  - Mantém as moedas animadas e a física completa
- *  - Corrige tremulação do Mario arredondando a posição x da câmera
- *
- * Estrutura de pastas esperada:
- *   assets/
- *     textures/
- *       background.png
- *       ItemsAndBlock.png
- *       coin.png
- *       mario/
- *         smallmario.png
- *         supermario.png
- *         firemario.png
- *     audio/
- *       bump.wav
- *       jump.wav
- *
- * Compile com:
- *   gcc -o uni_mariobros main.c coin.c game_scene.c mario.c platform.c -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
- *
- * Ajuste as flags conforme sua instalação do raylib.
- *******************************************************************************************/
+
 
 // Inclui biblioteca padrão de entrada/saída
 #include <stdio.h>
