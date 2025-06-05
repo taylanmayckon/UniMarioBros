@@ -63,6 +63,7 @@ typedef struct{
     bool invincible; // Quando ele é atacado fica invencível se tiver cogumelo
     bool canJump; // Booleano para indicar se pode pular ou não
     bool canMove; // Booleano para indicar se pode se mover ou não 
+    bool isDying; // Booleano para indicar se está morrendo
     bool facingRight; // Se esta olhando para a direita ou não (1: direita, 0: não)
     MarioPowerUpStates_t powerUpState; // Estado atual do Mario (ex: normal, grande)
     MarioActionStates_t actualState; // Ação atual do Mario (parado, correndo, pulando...)
@@ -74,6 +75,7 @@ void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_fra
 void InitMario(Mario_t *Mario);
 void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_scale);
 void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range);
+void deathAnim(Mario_t *Mario, int frame_index);
 void DrawMario(Mario_t *Mario);
 
 #endif

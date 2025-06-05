@@ -40,7 +40,7 @@ void InitMario(Mario_t *Mario){
     Mario->facingRight = true; // Virado para direita
     Mario->canJump = true; // Consegue pular
     Mario->powerUpState = STATE_SMALL; // Estado do mario (normal, super,)
-    Mario->actualState = ACTION_IDLE; // Parado
+    Mario->actualState = ACTION_DEATH; // Parado
     Mario->lives=3; // Contador de vidas
     Mario->score=0; // Pontuação
     Mario->coins=0; // Quant. de moedas
@@ -166,6 +166,22 @@ void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range){ // first_frame e end
     }
 }
 
+
+// Animação de morte do Mario
+void deathAnim(Mario_t *Mario, int frame_index){ 
+    MarioSprite_t *sprite = Mario->animations.activeSprite; // Pegando o endereço da sprite de morte
+
+    // Acumula o tempo que passou desde a ultima atualização da animação
+    // Na pratica é um cronometro
+    sprite->frameTimer += GetFrameTime();
+    if(sprite->frameTimer >= sprite->frameSpeed){ // Verificando se tá na hora de alterar o frame da animação
+        sprite->frameTimer = 0; // Reinicia o cronometro
+        Mario->position.y -= 1.0f; // Faz o Mario ir para baixo
+        Mario->animations.activeSprite->currentFrame = frame_index;
+    }
+}
+
+
 // Função para selecionar qual sprite será manipulada e desenhada
 void DrawMario(Mario_t *Mario){
     // Ponteiros para manipular as infos de animação de Mario
@@ -229,6 +245,19 @@ void DrawMario(Mario_t *Mario){
         }
         else{ // Esquerda
             Mario->animations.activeSprite->currentFrame = currentAnimData->freezedFrameLeft;
+        }
+    }
+
+    // Se estiver morrendo
+    if(Mario->isDying){
+        Mario->animations.activeSprite->frameSpeed = 0.15f; // Tempo de atualização da animação de morte
+        Mario->canMove = false; // Desativa a possibilidade de andar
+        deathAnim(Mario, currentAnimData->freezedFrameLeft); // Atualiza a animação de morte
+
+        if(Mario->position.y <= 0.0f){ // Quando ele some da tela
+            Mario->canMove = true; // Libera movimento
+            Mario->isDying = false; // Desativa morte
+            Mario->animations.activeSprite->frameSpeed = 0.1f; // Volta o tempo original de animação
         }
     }
 
