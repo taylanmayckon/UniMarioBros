@@ -52,16 +52,15 @@ typedef struct{
     MarioAnimDB_t fireMarioAnimDB; // Fire mario
 } MarioAnimation_t;
 
+
 // Struct principal do Mario
 typedef struct{
     Vector2 position; // Posição atual do Mario (x, y)
     Vector2 speed; // Velocidade atual do Mario (x, y)
-    float jumpForce; // Força do pulo (seria a aceleração)
     int lives; // Contador de vidas
     int score; // Pontuação
     int coins; // Quant. de moedas
     bool invincible; // Quando ele é atacado fica invencível se tiver cogumelo
-    bool canJump; // Booleano para indicar se pode pular ou não
     bool canMove; // Booleano para indicar se pode se mover ou não 
     bool isDying; // Booleano para indicar se está morrendo
     bool facingRight; // Se esta olhando para a direita ou não (1: direita, 0: não)
@@ -71,6 +70,7 @@ typedef struct{
 } Mario_t;
 
 // Protótipos de funções:
+void UpdateMario(Mario_t *Mario);
 void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int currentFrame);
 void InitMario(Mario_t *Mario);
 void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_scale);
