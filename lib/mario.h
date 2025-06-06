@@ -1,79 +1,138 @@
 #ifndef MARIO_H
 #define MARIO_H
 
-#include "mario_animdb.h"
+#include "raylib.h"
 
-// Enum para os estados do Mário (Quando ele pega flor, etc...)
-typedef enum{
-    STATE_SMALL, // Mario pequeno (padrão)
-    STATE_SUPER, // Mario grande
-    STATE_FIRE, // Mario que taca bola de fogo
+// Define largura do frame do Mario normal
+#define NORMAL_MARIO_FRAME_WIDHT_CUT  16.0f
+// Define altura do frame do Mario normal
+#define NORMAL_MARIO_FRAME_HEIGHT_CUT 16.f
+// Define largura do frame do Super Mario
+#define SUPER_MARIO_FRAME_WIDHT_CUT  16.0f
+// Define altura do frame do Super Mario
+#define SUPER_MARIO_FRAME_HEIGHT_CUT 30.0f
+// Define largura do frame do Fire Mario
+#define FIRE_MARIO_FRAME_WIDHT_CUT  16.0f
+// Define altura do frame do Fire Mario
+#define FIRE_MARIO_FRAME_HEIGHT_CUT 31.0f
+// Escala global do Mario
+#define MARIO_SPRITE_SCALE 3.5f
+
+// Define intervalo de frames para animação
+typedef struct {
+    int start; // Frame inicial
+    int end;   // Frame final
+} FrameRange_t;
+
+// Estrutura de dados de animação
+typedef struct {
+    bool isLooping;              // Se anima em loop
+    FrameRange_t leftAnimFrames; // Intervalo para esquerda
+    FrameRange_t rightAnimFrames;// Intervalo para direita
+    int freezedFrameLeft;        // Frame fixo esquerda
+    int freezedFrameRight;       // Frame fixo direita
+} AnimData_t;
+
+// Banco de animações para cada estado do Mario
+typedef struct {
+    AnimData_t idle;     // Parado
+    AnimData_t walking;  // Andando
+    AnimData_t jumping;  // Pulando
+    AnimData_t slide;    // Deslizando
+    AnimData_t crouch;   // Agachado
+    AnimData_t death;    // Morto
+    AnimData_t throw;    // Jogar bola de fogo
+} MarioAnimDB_t;
+
+// Inicializa banco de animação do Mario pequeno
+static MarioAnimDB_t InitSmallMarioDB(void);
+// Inicializa banco de animação do Super Mario
+static MarioAnimDB_t InitSuperMarioDB(void);
+// Inicializa banco de animação do Fire Mario
+static MarioAnimDB_t InitFireMarioDB(void);
+
+// Estados de power-up do Mario
+typedef enum {
+    STATE_SMALL,  // Pequeno
+    STATE_SUPER,  // Grande
+    STATE_FIRE    // Fogo
 } MarioPowerUpStates_t;
 
-// Enum para as ações do Mario (pular, andar, deslizar...)
-typedef enum{
-    ACTION_IDLE, // Mario parado
-    ACTION_WALKING, // Mario andando
-    ACTION_JUMPING, // Mario pulando
-    ACTION_SLIDE, // Mario deslizando (parando de correr)
-    ACTION_CROUCH, // Mario abaixado
-    ACTION_DEATH, // Morte
-    ACTION_THROW, // Jogar bola de fogo
+// Ações do Mario
+typedef enum {
+    ACTION_IDLE,    // Parado
+    ACTION_WALKING, // Andando
+    ACTION_JUMPING, // Pulando
+    ACTION_SLIDE,   // Deslizando
+    ACTION_CROUCH,  // Agachado
+    ACTION_DEATH,   // Morto
+    ACTION_THROW    // Jogar bola de fogo
 } MarioActionStates_t;
 
-// Struct para as animações do Mário
-typedef struct{
-    Texture2D spriteSheet; // Local da textura da animação
-    Rectangle sourceRec; // Retangulo de origem (o corte da sprite)
-    Rectangle destRec; // Retangulo de destino: pos_x, pos_y, largura, altura
-    int currentFrame; // Frame atual (0->frameCount)
-    float frameSpeed; // Duração de cada frame (ex: 1s)
-    float frameTimer; // Contador para animação atual (conta quantos segundos já foram até o frameSpeed)
-    bool revertAnim; // Booleano para inverter animação para tornar mais suave a transição dos frames
-    float frameWidthCut; // Largura do corte de cada frame
-    float frameHeightCut; // Altura do corte de cada frame
+// Estrutura da sprite do Mario
+typedef struct {
+    Texture2D spriteSheet;    // Sprite sheet
+    Rectangle sourceRec;      // Retângulo de origem
+    Rectangle destRec;        // Retângulo de destino
+    int       currentFrame;   // Frame atual
+    float     frameSpeed;     // Velocidade da animação
+    float     frameTimer;     // Cronômetro
+    bool      revertAnim;     // Reverter animação
+    float     frameWidthCut;  // Largura do frame
+    float     frameHeightCut; // Altura do frame
 } MarioSprite_t;
 
-// Struct que armazena as informações das ações do Mário
-typedef struct{
-    // Renderizam os frames do Mario andando, pulando, agachando e deslizando
-    Texture2D smallMarioSheet;
-    Texture2D superMarioSheet;
-    Texture2D fireMarioSheet;
-    // Sprites de cada estado do Mario
-    MarioSprite_t smallMarioSprite;
-    MarioSprite_t superMarioSprite;
-    MarioSprite_t fireMarioSprite;
-    // Ponteiro para a sprite que será desenhada e animada
-    MarioSprite_t *activeSprite; 
-    // Banco de dados de cada animação do Mario com base no PowerUp
-    MarioAnimDB_t smallMarioAnimDB; // Mario normal
-    MarioAnimDB_t superMarioAnimDB; // Super mario
-    MarioAnimDB_t fireMarioAnimDB; // Fire mario
+// Estrutura de animações do Mario
+typedef struct {
+    Texture2D       smallMarioSheet;   // Sprite sheet pequeno
+    Texture2D       superMarioSheet;   // Sprite sheet super
+    Texture2D       fireMarioSheet;    // Sprite sheet fogo
+
+    MarioSprite_t   smallMarioSprite;  // Sprite pequeno
+    MarioSprite_t   superMarioSprite;  // Sprite super
+    MarioSprite_t   fireMarioSprite;   // Sprite fogo
+
+    MarioSprite_t  *activeSprite;      // Sprite ativa
+
+    MarioAnimDB_t   smallMarioAnimDB;  // Banco animação pequeno
+    MarioAnimDB_t   superMarioAnimDB;  // Banco animação super
+    MarioAnimDB_t   fireMarioAnimDB;   // Banco animação fogo
 } MarioAnimation_t;
 
-// Struct principal do Mario
-typedef struct{
-    Vector2 position; // Posição atual do Mario (x, y)
-    Vector2 speed; // Velocidade atual do Mario (x, y)
-    float jumpForce; // Força do pulo (seria a aceleração)
-    int lives; // Contador de vidas
-    int score; // Pontuação
-    int coins; // Quant. de moedas
-    bool invincible; // Quando ele é atacado fica invencível se tiver cogumelo
-    bool canJump; // Booleano para indicar se pode pular ou não
-    bool canMove; // Booleano para indicar se pode se mover ou não 
-    bool facingRight; // Se esta olhando para a direita ou não (1: direita, 0: não)
-    MarioPowerUpStates_t powerUpState; // Estado atual do Mario (ex: normal, grande)
-    MarioActionStates_t actualState; // Ação atual do Mario (parado, correndo, pulando...)
-    MarioAnimation_t animations; // Todas as animações agrupadas
+// Estrutura principal do Mario
+typedef struct {
+    Vector2                position;       // Posição
+    Vector2                speed;          // Velocidade
+    float                  jumpForce;      // Força do pulo
+    int                    lives;          // Vidas
+    int                    score;          // Pontuação
+    int                    coins;          // Moedas
+    bool                   invincible;     // Invencível
+    bool                   canJump;        // Pode pular
+    bool                   canMove;        // Pode mover
+    bool                   facingRight;    // Virado para direita
+    MarioPowerUpStates_t   powerUpState;   // Estado power-up
+    MarioActionStates_t    actualState;    // Estado atual
+    MarioAnimation_t       animations;     // Animações
 } Mario_t;
 
-// Protótipos de funções:
-void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int currentFrame);
-void InitMario(Mario_t *Mario);
-void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_scale);
-void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range);
-void DrawMario(Mario_t *Mario);
+// Prototipação de funções
+static void InitSprite(MarioSprite_t *sprite,
+                       Texture2D texture,
+                       Rectangle original_frame_pos_scale,
+                       float frameSpeed,
+                       float frameTimer,
+                       int currentFrame);
 
-#endif
+static void InitMario(Mario_t *Mario);
+static void ChangeMarioSpritePosition(Mario_t *Mario,
+                                      float width_scale,
+                                      float height_scale);
+static void ConstrainIndex(Mario_t *Mario, FrameRange_t range);
+static void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range);
+static void DrawMario(Mario_t *Mario);
+
+// Prototipação de colisão
+static Rectangle GetMarioCollisionRect(Mario_t *Mario);
+
+#endif // MARIO_H
