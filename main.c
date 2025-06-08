@@ -9,6 +9,11 @@ Mario_t Mario;
 // Variavel de tempo para testes
 float timer = 0.0f;
 
+// Som de bounce
+Sound bumpSound;
+// Som de pulo
+Sound jumpSound;
+
 int main(void){
     InitWindow(990, 720, "UniMarioBros");
 

@@ -30,6 +30,6 @@ extern int physPlatCount;
 extern PhysPlatform_t physPlatforms[MAX_PHYS_PLATFORMS];
 
 // Prototipação de funções auxiliares
-void HandleMarioPlatformCollisions(Mario_t *Mario);
+void HandleMarioPlatformCollisions(Mario_t *Mario, Sound bumpSound);
 
 #endif // PLATFORM_H

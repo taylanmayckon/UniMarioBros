@@ -63,6 +63,7 @@ typedef struct{
     bool invincible; // Quando ele é atacado fica invencível se tiver cogumelo
     bool canMove; // Booleano para indicar se pode se mover ou não 
     bool isDying; // Booleano para indicar se está morrendo
+    bool canJump; // PLACEHOLDER PARA NAO DAR ERRO DE COMPILAÇÃO
     bool facingRight; // Se esta olhando para a direita ou não (1: direita, 0: não)
     MarioPowerUpStates_t powerUpState; // Estado atual do Mario (ex: normal, grande)
     MarioActionStates_t actualState; // Ação atual do Mario (parado, correndo, pulando...)

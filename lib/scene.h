@@ -3,23 +3,23 @@
 
 #include "raylib.h"
 
-// Struct que representa uma plataforma no jogo
+// Estrutura de uma plataforma fixa
 typedef struct {
-    Rectangle rect;  // Retângulo de colisão da plataforma
+    Rectangle rect;  // Retângulo da plataforma
 } Platform;
 
-// Struct que representa o cenário do jogo
+// Estrutura do cenário do jogo
 typedef struct {
-    Texture2D background;   // Textura do fundo do cenário
-    Platform *platforms;    // Endereço de uma variável do tipo platform, para alocação dinâmica de memória
-    int platformCount;      // Quantidade de plataformas no cenário
-    float scale;            // Escala para ajustar ao tamanho da tela
-    float scaledBackgroundWidth;    // Largura do background após escalonamento
+    Texture2D background;         // Textura do fundo
+    Platform *platforms;          // Vetor de plataformas
+    int       platformCount;      // Quantidade de plataformas
+    float     scale;              // Fator de escala do fundo
+    float     scaledBackgroundWidth; // Largura do fundo escalado
 } GameScene;
 
-// Protótipos de funções:
-GameScene CreateGameScene(const char *backgroundImagePath); // Cria e inicializa o cenário do jogo
-void DrawGameScene(GameScene scene); // Desenha todos os elementos do cenário
-void UnloadGameScene(GameScene scene); // Libera os recursos alocados pelo cenário
+// Prototipação das funções
+GameScene CreateGameScene(const char *backgroundImagePath);
+void DrawGameScene(GameScene scene);
+void UnloadGameScene(GameScene scene);
 
-#endif
+#endif // GAME_SCENE_H

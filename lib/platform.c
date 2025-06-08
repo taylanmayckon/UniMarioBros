@@ -13,7 +13,7 @@ int physPlatCount = 0;
 PhysPlatform_t physPlatforms[MAX_PHYS_PLATFORMS];
 
 // Trata colisão Mario/plataforma
-void HandleMarioPlatformCollisions(Mario_t *Mario) {
+void HandleMarioPlatformCollisions(Mario_t *Mario, Sound bumpSound) {
     Rectangle mRect = GetMarioCollisionRect(Mario); // Retângulo do Mario
 
     for (int i = 0; i < physPlatCount; i++) {
