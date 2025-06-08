@@ -77,5 +77,6 @@ void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_s
 void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range);
 void deathAnim(Mario_t *Mario, int frame_index);
 void DrawMario(Mario_t *Mario);
+Rectangle GetMarioCollisionRect(Mario_t *Mario);
 
 #endif

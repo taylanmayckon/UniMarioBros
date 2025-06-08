@@ -16,5 +16,5 @@ add_subdirectory(external/raylib-5.5)
 # Pasta dos headers da raylib
 include_directories(external/raylib-5.5/src)
 
-add_executable(UniMarioBros main.c lib/mario.c lib/mario_animdb.c lib/scene.c)
+add_executable(UniMarioBros main.c lib/mario.c lib/mario_animdb.c lib/scene.c lib/game_scene.c lib/coin.c lib/platform.c)
 target_link_libraries(UniMarioBros raylib)

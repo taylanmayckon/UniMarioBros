@@ -462,3 +462,20 @@ void DrawMario(Mario_t *Mario){
         Mario->animations.activeSprite->frameHeightCut * MARIO_SPRITE_SCALE);
 }
 
+
+// Retangulo de colisão do Mario
+Rectangle GetMarioCollisionRect(Mario_t *Mario){
+    MarioSprite_t *sprite = Mario->animations.activeSprite; // Sprite ativa
+    float width  = sprite->frameWidthCut * MARIO_SPRITE_SCALE; // Largura
+    float height = sprite->frameHeightCut * MARIO_SPRITE_SCALE; // Altura
+
+    float x = Mario->position.x - (width / 2.0f); // X do retângulo
+    float y = Mario->position.y - height; // Y do retângulo
+
+    return (Rectangle){
+        x + 12.0f,  // Ajuste X
+        y - 2.0f, // Ajuste Y
+        width - 24.0f, // Ajuste largura
+        height + 2.0f  // Ajuste altura
+    };
+}
