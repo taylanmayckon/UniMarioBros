@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include <math.h>
 #include "camera.h"
 #include "mario.h"
 

@@ -27,8 +27,6 @@ void InitCoins(Coin_t *coins){
 
 // Atualiza moedas
 void UpdateCoins(Mario_t *Mario) {
-    Rectangle mRect = GetMarioCollisionRect(Mario); // Retângulo do Mario
-
     for (int i = 0; i < coinCount; i++) {
         Coin_t *c = &coins[i]; // Moeda
         if (!c->active) continue; // Se não ativa, pula
@@ -40,7 +38,7 @@ void UpdateCoins(Mario_t *Mario) {
             c->frameHeight * 3.0f - 6.0f
         };
 
-        if (CheckCollisionRecs(mRect, coinRect)) { // Se colidiu
+        if (CheckCollisionRecs(Mario->hitbox, coinRect)) { // Se colidiu
             c->active = false; // Desativa moeda
             Mario->coins++;    // Incrementa moedas
             Mario->score += 100; // Pontuação

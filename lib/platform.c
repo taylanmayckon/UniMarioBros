@@ -106,20 +106,18 @@ void DrawBlocks(PhysPlatform_t *physPlatforms, Texture2D block1){
 
 // Trata colisão Mario/plataforma
 void HandleMarioPlatformCollisions(Mario_t *Mario, PhysPlatform_t *physPlatforms, Sound bumpSound) {
-    Rectangle mRect = GetMarioCollisionRect(Mario); // Retângulo do Mario
-
     for (int i = 0; i < physPlatCount; i++) {
         PhysPlatform_t *p = &physPlatforms[i]; // Plataforma
         Rectangle pRect = p->rect;             // Retângulo da plataforma
 
-        if (CheckCollisionRecs(mRect, pRect)) { // Se colidiu
-            if (Mario->speed.y > 0 && (mRect.y + mRect.height - (Mario->speed.y * GetFrameTime())) <= pRect.y) {
+        if (CheckCollisionRecs(Mario->hitbox, pRect)) { // Se colidiu
+            if (Mario->speed.y > 0 && (Mario->hitbox.y + Mario->hitbox.height - (Mario->speed.y * GetFrameTime())) <= pRect.y) {
                 Mario->position.y = pRect.y; // Coloca Mario em cima
                 Mario->speed.y = 0;          // Zera velocidade Y
                 Mario->canJump = true;       // Pode pular
             }
-            else if (Mario->speed.y < 0 && (mRect.y) <= (pRect.y + pRect.height) &&
-                     (mRect.y + mRect.height) > (pRect.y + pRect.height))
+            else if (Mario->speed.y < 0 && (Mario->hitbox.y) <= (pRect.y + pRect.height) &&
+                     (Mario->hitbox.y + Mario->hitbox.height) > (pRect.y + pRect.height))
             {
                 Mario->speed.y = 0; // Zera velocidade Y
 

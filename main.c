@@ -6,8 +6,8 @@
 #include "camera.h"
 #include "coin.h"
 
-#define SCREEN_WIDTH 990
-#define SCREEN_HEIGHT 720
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
 
 // Inicializando Mario_t
 Mario_t Mario;

@@ -30,9 +30,27 @@
 #define AIR_FRICTION_COEFF 0.98f // Coeficiente de atrito no ar (2 anos de aero, se tá no ar tem arrasto)
 #define SLIDE_DECELERATION 450.0f // Desaceleração ao deslizar (pixels/s^2)
 #define STOP_SPEED_THRESHOLD 10.0f  // Abaixo desta Vy, considera-se parado
-#define GROUND_Y 550.0f // Placeholder de chão só para testes (tem que pegar isso do código de colisões)
+#define GROUND_Y 450.0f // Placeholder de chão só para testes (tem que pegar isso do código de colisões)
 
 
+// Retangulo de colisão do Mario
+void MarioHitbox(Mario_t *Mario){
+    MarioSprite_t *sprite = Mario->animations.activeSprite; // Sprite ativa
+    float width  = sprite->frameWidthCut * MARIO_SPRITE_SCALE; // Largura
+    float height = sprite->frameHeightCut * MARIO_SPRITE_SCALE; // Altura
+
+    float x = Mario->position.x - (width / 2.0f); // X do retângulo
+    float y = Mario->position.y - height; // Y do retângulo
+
+    Mario->hitbox = (Rectangle){
+        x + 12.0f,  // Ajuste X
+        y - 2.0f, // Ajuste Y
+        width - 24.0f, // Ajuste largura
+        height + 2.0f  // Ajuste altura
+    };
+}
+
+// Pega inputs do teclado, processa a física e gera outputs para outras libs
 void UpdateMario(Mario_t *Mario) {
     // Se estiver na animação de morte, o UpdateMario retorna já aqui
     if(Mario->isDying){
@@ -210,6 +228,9 @@ void UpdateMario(Mario_t *Mario) {
     if(isOnGround && fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD && Mario->actualState != ACTION_CROUCH && Mario->actualState != ACTION_SLIDE){
         Mario->actualState = ACTION_IDLE;
     }
+
+    // Atualizando a Hitbox
+    MarioHitbox(Mario);
 }
 
 
@@ -228,11 +249,11 @@ void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_fra
 void InitMario(Mario_t *Mario){
     printf("[InitMario] Running\n");
 
-    Mario->position = (Vector2){260.0f, 550.0f}; // Posição inicial
+    Mario->position = (Vector2){260.0f, 450.0f}; // Posição inicial
     Mario->speed = (Vector2){0.0f, 0.0f}; // Inicia em repouso (vx, vy = 0)
     Mario->invincible = false; // Inicia "vencível"
     Mario->facingRight = true; // Virado para direita
-    Mario->powerUpState = STATE_SUPER; // Estado do mario (normal, super,)
+    Mario->powerUpState = STATE_SMALL; // Estado do mario (normal, super,)
     Mario->actualState = ACTION_IDLE; // Parado
     Mario->lives=3; // Contador de vidas
     Mario->score=0; // Pontuação
@@ -460,22 +481,4 @@ void DrawMario(Mario_t *Mario){
         Mario,
         Mario->animations.activeSprite->frameWidthCut * MARIO_SPRITE_SCALE,
         Mario->animations.activeSprite->frameHeightCut * MARIO_SPRITE_SCALE);
-}
-
-
-// Retangulo de colisão do Mario
-Rectangle GetMarioCollisionRect(Mario_t *Mario){
-    MarioSprite_t *sprite = Mario->animations.activeSprite; // Sprite ativa
-    float width  = sprite->frameWidthCut * MARIO_SPRITE_SCALE; // Largura
-    float height = sprite->frameHeightCut * MARIO_SPRITE_SCALE; // Altura
-
-    float x = Mario->position.x - (width / 2.0f); // X do retângulo
-    float y = Mario->position.y - height; // Y do retângulo
-
-    return (Rectangle){
-        x + 12.0f,  // Ajuste X
-        y - 2.0f, // Ajuste Y
-        width - 24.0f, // Ajuste largura
-        height + 2.0f  // Ajuste altura
-    };
 }
