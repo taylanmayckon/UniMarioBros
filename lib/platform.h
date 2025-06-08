@@ -24,12 +24,10 @@ typedef struct {
     float     bounceSpeed; // Velocidade do bounce
 } PhysPlatform_t;
 
-// Contador de plataformas dinâmicas
-extern int physPlatCount;
-// Vetor de plataformas dinâmicas
-extern PhysPlatform_t physPlatforms[MAX_PHYS_PLATFORMS];
-
 // Prototipação de funções auxiliares
-void HandleMarioPlatformCollisions(Mario_t *Mario, Sound bumpSound);
+void InitPlatforms(PhysPlatform_t *physPlatforms);
+void UpdatePlatforms(PhysPlatform_t *physPlatform);
+void DrawBlocks(PhysPlatform_t *physPlatforms, Texture2D block1);
+void HandleMarioPlatformCollisions(Mario_t *Mario, PhysPlatform_t *physPlatforms, Sound bumpSound);
 
 #endif // PLATFORM_H

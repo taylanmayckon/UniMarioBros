@@ -31,6 +31,7 @@ extern Texture2D coinAtlas;
 
 // Prototipação de funções auxiliares
 Coin_t CreateCoin(Vector2 position);
+void InitCoins(Coin_t *coins);
 void UpdateCoins(Mario_t *Mario);
 void DrawCoins(void);
 

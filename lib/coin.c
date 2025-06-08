@@ -17,6 +17,14 @@ Coin_t CreateCoin(Vector2 position) {
     };
 }
 
+void InitCoins(Coin_t *coins){
+    coinCount = 0; // Zera moedas
+    coins[coinCount++] = CreateCoin((Vector2){500.0f, 280.0f}); // Cria moeda
+    coins[coinCount++] = CreateCoin((Vector2){556.0f, 280.0f});
+    coins[coinCount++] = CreateCoin((Vector2){662.0f, 280.0f});
+    coins[coinCount++] = CreateCoin((Vector2){712.0f, 280.0f});
+}
+
 // Atualiza moedas
 void UpdateCoins(Mario_t *Mario) {
     Rectangle mRect = GetMarioCollisionRect(Mario); // Retângulo do Mario
