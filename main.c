@@ -25,10 +25,16 @@ Sound jumpSound;
 
 int main(void){
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "UniMarioBros");
+    InitAudioDevice();
     SetTargetFPS(60);
     GameScene scene = CreateGameScene("assets/textures/background.png"); // Função da biblioteca Scene para configurar o cenário
     // (PLACHOLDER) bloco para teste de DrawBlocks
     Texture2D block1 = LoadTexture("assets/textures/blocks/block1.png");
+
+    bumpSound = LoadSound("assets/audio/bump.wav"); // Carrega som bump
+    jumpSound = LoadSound("assets/audio/jump.wav"); // Carrega som pulo
+
+    coinAtlas = LoadTexture("assets/textures/items/coin.png"); // Carrega textura moeda
 
     InitMario(&Mario); // Inicializando as structs do Mario com valores
     InitPlatforms(physPlatforms); // Inicializando as plataformas
