@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "raylib.h": "c",
-        "mario_animdb.h": "c",
-        "coin.h": "c",
-        "stdio.h": "c",
-        "game_scene.h": "c"
-    }
-}
