@@ -124,25 +124,24 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
     // -> Movimento e colisao no eixo X
     Mario->position.x += Mario->speed.x * dt;
     MarioHitbox(Mario);
-
     for (int i = 0; i < physPlatCount; i++) {
         Rectangle pRect = physPlatforms[i].rect;
         if (CheckCollisionRecs(Mario->hitbox, pRect)) {
-            // Verifica se é uma colisão genuinamente horizontal, checando a posição do frame anterior
+            // Verifica se é uma colisão horizontal, checando a posição do frame anterior
             float prev_hitbox_right = Mario->hitbox.x + Mario->hitbox.width - Mario->speed.x * dt;
             float prev_hitbox_left = Mario->hitbox.x - Mario->speed.x * dt;
 
-            // Colidindo com uma parede à direita
+            // Colidindo à direita
             if (Mario->speed.x > 0 && prev_hitbox_right <= pRect.x) {
                 Mario->position.x -= (Mario->hitbox.x + Mario->hitbox.width) - pRect.x;
                 Mario->speed.x = 0;
             }
-            // Colidindo com uma parede à esquerda
+            // Colidindo à esquerda
             else if (Mario->speed.x < 0 && prev_hitbox_left >= (pRect.x + pRect.width)) {
                  Mario->position.x += (pRect.x + pRect.width) - Mario->hitbox.x;
                  Mario->speed.x = 0;
             }
-            // Se a colisão não for puramente horizontal (ex: canto), a correção será feita pelo eixo Y.
+            
             MarioHitbox(Mario);
         }
     }
