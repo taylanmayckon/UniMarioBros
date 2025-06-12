@@ -15,7 +15,7 @@ void InitPlatforms(PhysPlatform_t *physPlatforms){
     physPlatCount = 0;
 
     physPlatforms[physPlatCount++] = (PhysPlatform_t){
-        .rect        = { 0.0f, 545.0f, 1200.0f, 120.0f },
+        .rect        = { 0.0f, 445.0f, 1200.0f, 120.0f },
         .originalY   = 545.0f,
         .bounceOffset=  0.0f,
         .bouncing    = false,
@@ -23,32 +23,32 @@ void InitPlatforms(PhysPlatform_t *physPlatforms){
         .bounceSpeed =  0.0f
     };
     physPlatforms[physPlatCount++] = (PhysPlatform_t){
-        .rect        = { 500.0f, 355.0f, 60.0f, 57.0f },
-        .originalY   = 355.0f,
+        .rect        = { 500.0f, 320.0f, 60.0f, 57.0f },
+        .originalY   = 320.0f,
         .bounceOffset=  0.0f,
         .bouncing    = false,
         .bounceDir   =  0,
         .bounceSpeed =  0.0f
     };
     physPlatforms[physPlatCount++] = (PhysPlatform_t){
-        .rect        = { 556.0f, 355.0f, 60.0f, 57.0f },
-        .originalY   = 355.0f,
+        .rect        = { 556.0f, 320.0f, 60.0f, 57.0f },
+        .originalY   = 320.0f,
         .bounceOffset=  0.0f,
         .bouncing    = false,
         .bounceDir   =  0,
         .bounceSpeed =  0.0f
     };
     physPlatforms[physPlatCount++] = (PhysPlatform_t){
-        .rect        = { 662.0f, 355.0f, 60.0f, 57.0f },
-        .originalY   = 355.0f,
+        .rect        = { 662.0f, 320.0f, 60.0f, 57.0f },
+        .originalY   = 320.0f,
         .bounceOffset=  0.0f,
         .bouncing    = false,
         .bounceDir   =  0,
         .bounceSpeed =  0.0f
     };
     physPlatforms[physPlatCount++] = (PhysPlatform_t){
-        .rect        = { 712.0f, 355.0f, 60.0f, 57.0f },
-        .originalY   = 355.0f,
+        .rect        = { 712.0f, 320.0f, 60.0f, 57.0f },
+        .originalY   = 320.0f,
         .bounceOffset=  0.0f,
         .bouncing    = false,
         .bounceDir   =  0,
@@ -105,29 +105,29 @@ void DrawBlocks(PhysPlatform_t *physPlatforms, Texture2D block1){
 }
 
 // Trata colisão Mario/plataforma
-void HandleMarioPlatformCollisions(Mario_t *Mario, PhysPlatform_t *physPlatforms, Sound bumpSound) {
-    for (int i = 0; i < physPlatCount; i++) {
-        PhysPlatform_t *p = &physPlatforms[i]; // Plataforma
-        Rectangle pRect = p->rect;             // Retângulo da plataforma
+// void HandleMarioPlatformCollisions(Mario_t *Mario, PhysPlatform_t *physPlatforms, Sound bumpSound) {
+//     for (int i = 0; i < physPlatCount; i++) {
+//         PhysPlatform_t *p = &physPlatforms[i]; // Plataforma
+//         Rectangle pRect = p->rect;             // Retângulo da plataforma
 
-        if (CheckCollisionRecs(Mario->hitbox, pRect)) { // Se colidiu
-            if (Mario->speed.y > 0 && (Mario->hitbox.y + Mario->hitbox.height - (Mario->speed.y * GetFrameTime())) <= pRect.y) {
-                Mario->position.y = pRect.y; // Coloca Mario em cima
-                Mario->speed.y = 0;          // Zera velocidade Y
-                Mario->canJump = true;       // Pode pular
-            }
-            else if (Mario->speed.y < 0 && (Mario->hitbox.y) <= (pRect.y + pRect.height) &&
-                     (Mario->hitbox.y + Mario->hitbox.height) > (pRect.y + pRect.height))
-            {
-                Mario->speed.y = 0; // Zera velocidade Y
+//         if (CheckCollisionRecs(Mario->hitbox, pRect)) { // Se colidiu
+//             if (Mario->speed.y > 0 && (Mario->hitbox.y + Mario->hitbox.height - (Mario->speed.y * GetFrameTime())) <= pRect.y) {
+//                 Mario->position.y = pRect.y; // Coloca Mario em cima
+//                 Mario->speed.y = 0;          // Zera velocidade Y
+//                 Mario->canJump = true;       // Pode pular
+//             }
+//             else if (Mario->speed.y < 0 && (Mario->hitbox.y) <= (pRect.y + pRect.height) &&
+//                      (Mario->hitbox.y + Mario->hitbox.height) > (pRect.y + pRect.height))
+//             {
+//                 Mario->speed.y = 0; // Zera velocidade Y
 
-                if (i > 0 && !p->bouncing) { // Se não for chão
-                    p->bouncing = true;      // Ativa bounce
-                    p->bounceDir = 1;        // Sobe
-                    p->bounceOffset = 0.0f;  // Zera offset
-                    PlaySound(bumpSound);    // Toca som
-                }
-            }
-        }
-    }
-}
+//                 if (i > 0 && !p->bouncing) { // Se não for chão
+//                     p->bouncing = true;      // Ativa bounce
+//                     p->bounceDir = 1;        // Sobe
+//                     p->bounceOffset = 0.0f;  // Zera offset
+//                     PlaySound(bumpSound);    // Toca som
+//                 }
+//             }
+//         }
+//     }
+// }

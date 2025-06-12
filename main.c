@@ -42,8 +42,8 @@ int main(void){
 
     while (!WindowShouldClose()) {
         // Processando o back
-        UpdateMario(&Mario); // Movimentação, física e preparação de output para outras libs
-        HandleMarioPlatformCollisions(&Mario, physPlatforms, bumpSound); // Atualiza a colisão do Mario
+        UpdateMario(&Mario, physPlatforms, physPlatCount, bumpSound); // Movimentação, física e preparação de output para outras libs
+        // HandleMarioPlatformCollisions(&Mario, physPlatforms, bumpSound); // Atualiza a colisão do Mario
         UpdatePlatforms(physPlatforms);
         UpdateCoins(&Mario); // Atualiza as moedas
         MoveCamera(&gameCamera, Mario, SCREEN_WIDTH, SCREEN_HEIGHT); // Atualiza os parâmetros da câmera

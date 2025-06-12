@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "mario.h"
 #include "mario_animdb.h"
+#include "platform.h"
 
 
 // (NORMAL MARIO) definições para as sprites dele andando (192x18 total -> 16x18/frame)
@@ -44,193 +45,176 @@ void MarioHitbox(Mario_t *Mario){
 
     Mario->hitbox = (Rectangle){
         x + 12.0f,  // Ajuste X
-        y - 2.0f, // Ajuste Y
+        y, // Ajuste Y
         width - 24.0f, // Ajuste largura
         height + 2.0f  // Ajuste altura
     };
 }
 
 // Pega inputs do teclado, processa a física e gera outputs para outras libs
-void UpdateMario(Mario_t *Mario) {
-    // Se estiver na animação de morte, o UpdateMario retorna já aqui
-    if(Mario->isDying){
+void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCount, Sound bumpSound) {
+    // Se estiver na animação de morte ou se tiver em alguma outra animação (tipo pegar cogumelo/flor), UpdateMario retorna já aqui
+    if(Mario->isDying || !Mario->canMove){
         Mario->speed.x = 0; // Para garantir que não deslize se morrer andando
         return;
     }
 
-    // Se tiver em alguma outra animação (tipo pegar cogumelo/flor), UpdateMario retorna já aqui
-    if(!Mario->canMove){
-        Mario->speed.x = 0;
-        return;
-    }
+    float dt = GetFrameTime(); // Para o "Cálculo de integral" com o intervalo de tempo entre os frames sendo o dt
+    bool isOnGround = false; // Assume que inicialmente o Mario est[a no ar no inicio de cada frame
 
-    // Limpando o estado agachado para não bugar
-    if(Mario->actualState==ACTION_CROUCH){
-        Mario->actualState = ACTION_IDLE;
-    }
-
-    // Aqui é física, depois confere se tá certo os cálculos pra evitar algum bug 
-    float dt = GetFrameTime(); // "Cálculo de integral" com o intervalo de tempo entre os frames sendo o dt
-
-    bool isOnGround = (Mario->position.y >= GROUND_Y - 0.1f); // Verifica se tá no chão (LEMBRA DE CONFERIR COM O CÓDIGO DE COLISÃO A CONDIÇÃO DO CHÃO!!!!)
-
-    bool isTryingToRun = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT); // Detecta corrida (tá no shift)
-
-    // Animação pra dar impressão que ele tá correndo ao jogador
-    if(isTryingToRun){ // CORRENDO: Aumenta o FPS da animação
-        Mario->animations.activeSprite->frameSpeed=0.06f;
-    }
-    else{ // Andando, FPS normal
-        Mario->animations.activeSprite->frameSpeed=0.1f;
-    }
-
-    // Alterna instantaneamente da velocidade normal para correndo
-    float currentMaxMoveSpeed = isTryingToRun ? MARIO_RUN_SPEED : MARIO_WALK_SPEED; // Implementa uma lógica aqui para incrementar/decrementar até o valor desejado de Vx
-
-    // Parar a animação de pulo quando toca o chão
-    if(isOnGround && Mario->actualState == ACTION_JUMPING){
-        Mario->actualState = ACTION_IDLE; // Mario parado
-    }
-
-    // Inputs de movimentação/agachar
+    // Leitura de inputs do teclado
     bool wantsToMoveLeft = IsKeyDown(KEY_LEFT);
     bool wantsToMoveRight = IsKeyDown(KEY_RIGHT);
     bool wantsToCrouch = IsKeyDown(KEY_DOWN);
+    bool isTryingToRun = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT); // Detecta corrida (tá no shift)
 
-    // Agacha se estiver no chão
-    if(isOnGround && wantsToCrouch && Mario->powerUpState != STATE_SMALL && Mario->actualState != ACTION_JUMPING){
+    float currentMaxMoveSpeed = isTryingToRun ? MARIO_RUN_SPEED : MARIO_WALK_SPEED; // Seleciona qual velocidade ira usar (andando/correndo)
+
+    // // Limpando o estado agachado para não bugar
+    // if(Mario->actualState==ACTION_CROUCH){
+    //     Mario->actualState = ACTION_IDLE;
+    // }
+    
+
+    // -> Logica de estado e Velocidade Horizontal (Vx)
+    // Agachar (para Super e Fire Mario, no chao)
+    if(wantsToCrouch && Mario->powerUpState != STATE_SMALL && Mario->actualState!=ACTION_JUMPING && Mario->canJump){
         Mario->actualState = ACTION_CROUCH;
-        Mario->speed.x = 0; // Trava movimento quando agachado
+        Mario->speed.x = 0;
     }
+    // Se nao quiser agachar, limpa estado agachado e atribui Vx correspondente
+    else{
+        // Levanta se estava agachado
+        if(Mario->actualState == ACTION_CROUCH) Mario->actualState = ACTION_IDLE; 
 
-    // Movimento no eixo x
-    // Se não tiver agachado (para super/fire mario) ou se não puder agachar (para small mario)
-    else if(Mario->actualState != ACTION_CROUCH || !isOnGround || Mario->powerUpState == STATE_SMALL){
-        // Se estava agachado e soltou a tecla (ou não está mais no chão), volta ao estado IDLE
-        if(Mario->actualState == ACTION_CROUCH && (!wantsToCrouch || !isOnGround)){
-            Mario->actualState = ACTION_IDLE;
-        }
-
-        if(wantsToMoveLeft && !wantsToMoveRight){
+        // Movimento horizontal
+        if(wantsToMoveLeft && !wantsToMoveRight){ // Esquerda
             Mario->speed.x = -currentMaxMoveSpeed;
             Mario->facingRight = false;
-            if(isOnGround) Mario->actualState = ACTION_WALKING;
-        } else if(wantsToMoveRight && !wantsToMoveLeft){
+            if (Mario->actualState != ACTION_JUMPING) Mario->actualState = ACTION_WALKING; // Troca para anim de andar, caso nao esteja pulando
+        }
+        else if(!wantsToMoveLeft && wantsToMoveRight){ // Direita
             Mario->speed.x = currentMaxMoveSpeed;
             Mario->facingRight = true;
-            if(isOnGround) Mario->actualState = ACTION_WALKING;
-        } else{ // Nenhuma tecla de movimento horizontal pressionada ou ambas pressionadas
-            if(isOnGround){
-                // Lógica de Slide: Se estava andando e soltou as teclas com certa velocidade
-                // (tem que rever toda a física, e a lógica de ativação do slide, tá muito diferente do jogo base kkkkkkkkkk)
-                if(Mario->actualState == ACTION_WALKING && fabsf(Mario->speed.x) > MARIO_WALK_SPEED * 0.5f){
-                     Mario->actualState = ACTION_SLIDE;
+            if (Mario->actualState != ACTION_JUMPING) Mario->actualState = ACTION_WALKING; // Troca para anim de andar, caso nao esteja pulando
+        }
+        // Atrito e desaceleracao 
+        else{
+            // Atrito do chao, caso esteja andando
+            if(Mario->canJump){ 
+                // Aplica atrito do chão
+                Mario->speed.x *= powf(GROUND_FRICTION_COEFF, dt * 60.0f);
+            }
+            else{
+                // Arrasto do ar, caso esteja pulando
+                Mario->speed.x *= powf(AIR_FRICTION_COEFF, dt * 60.0f);
+            }
+            // Para instantaneamente se Vx for muito baixa
+            if(fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD){
+                Mario->speed.x = 0.0f;
+                if(Mario->actualState == ACTION_WALKING){
+                    Mario->actualState = ACTION_IDLE;
                 }
+            }
 
-                if(Mario->actualState == ACTION_SLIDE){
-                    if(Mario->facingRight){ // Deslizando para a direita (após mover para a direita)
-                        Mario->speed.x -= SLIDE_DECELERATION * dt; 
-                        if (Mario->speed.x <= 0.0f) {
-                            Mario->speed.x = 0.0f;
-                            Mario->actualState = ACTION_IDLE;
-                        }
-                    } else { // Deslizando para a esquerda
-                        Mario->speed.x += SLIDE_DECELERATION * dt;
-                        if(Mario->speed.x >= 0.0f){
-                            Mario->speed.x = 0.0f;
-                            Mario->actualState = ACTION_IDLE;
-                        }
-                    }
-                } else{ // Desaceleração normal (atrito)
-                    // Tentativa de fricção independente do FPS, na minha cabeça fica mais suave, não testei diferente
-                    // PS: Fica suave porque dessa forma sai de forma exponencial a desaceleração, e não multiplicativa, calcular depois pra ter certeza
-                    Mario->speed.x *= powf(GROUND_FRICTION_COEFF, dt * 60.0f); 
-                    if(fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD){ 
-                        // Esse fabs é para economizar o if no caso da velocidade negativo, fabs pega o valor absoluto (positivo) do float, trato em módulo a condição
-                        Mario->speed.x = 0.0f;
-                        if(Mario->actualState == ACTION_WALKING) Mario->actualState = ACTION_IDLE;
-                    }
-                }
-            } else{ // No ar (tem atrito do ar aí)
-                 Mario->speed.x *= powf(AIR_FRICTION_COEFF, dt * 60.0f);
-                 if (fabsf(Mario->speed.x) < 1.0f) { // Reduzir mais drasticamente no ar se sem input
-                    Mario->speed.x *= 0.95f;
-                 }
-            }
-             // Se a Vx zerou, e não está pulando, deslizando ou agachando, fica parado
-            if(fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD && isOnGround && Mario->actualState != ACTION_SLIDE && Mario->actualState != ACTION_CROUCH){
-                Mario->actualState = ACTION_IDLE;
-            }
         }
     }
 
+
+    // -> Movimento e colisao no eixo X
+    Mario->position.x += Mario->speed.x * dt;
+    MarioHitbox(Mario);
+
+    for (int i = 0; i < physPlatCount; i++) {
+        Rectangle pRect = physPlatforms[i].rect;
+        if (CheckCollisionRecs(Mario->hitbox, pRect)) {
+            // Verifica se é uma colisão genuinamente horizontal, checando a posição do frame anterior
+            float prev_hitbox_right = Mario->hitbox.x + Mario->hitbox.width - Mario->speed.x * dt;
+            float prev_hitbox_left = Mario->hitbox.x - Mario->speed.x * dt;
+
+            // Colidindo com uma parede à direita
+            if (Mario->speed.x > 0 && prev_hitbox_right <= pRect.x) {
+                Mario->position.x -= (Mario->hitbox.x + Mario->hitbox.width) - pRect.x;
+                Mario->speed.x = 0;
+            }
+            // Colidindo com uma parede à esquerda
+            else if (Mario->speed.x < 0 && prev_hitbox_left >= (pRect.x + pRect.width)) {
+                 Mario->position.x += (pRect.x + pRect.width) - Mario->hitbox.x;
+                 Mario->speed.x = 0;
+            }
+            // Se a colisão não for puramente horizontal (ex: canto), a correção será feita pelo eixo Y.
+            MarioHitbox(Mario);
+        }
+    }
+
+
+    // -> Pulo e fisica da gravidade
     // Pulo
-    // Só pode pular se estiver no chão e não estiver agachado
-    if(IsKeyPressed(KEY_SPACE) && isOnGround && Mario->actualState != ACTION_CROUCH){
+    if (IsKeyPressed(KEY_SPACE) && Mario->canJump && Mario->actualState != ACTION_CROUCH) {
         Mario->speed.y = -MARIO_JUMP_STRENGTH;
         Mario->actualState = ACTION_JUMPING;
-        isOnGround = false; // Já sinaliza que o Mario tá fora do chão para aplicar a gravidade
+        Mario->canJump = false; // Só pode pular de novo quando tocar o chão
+    }
+    // Aplica a gravidade
+    Mario->speed.y += GRAVITY * dt;
+    if (Mario->speed.y > MAX_FALL_SPEED) {
+        Mario->speed.y = MAX_FALL_SPEED;
     }
 
-    // Gravidade
-    if(!isOnGround){
-        Mario->speed.y += GRAVITY * dt;
-        // Limitar velocidade de queda
-        if(Mario->speed.y > MAX_FALL_SPEED){
-            Mario->speed.y = MAX_FALL_SPEED;
-        }
-        // Se não estiver pulando de fato (ex: caiu de uma plataforma), muda o estado para pulando/caindo.
-        // Não sobrescrever se estiver morrendo (já tem lá em cima a lógica, só por desencargo da consciência).
-        if(Mario->actualState != ACTION_JUMPING && Mario->actualState != ACTION_DEATH){
-             Mario->actualState = ACTION_JUMPING;
-        }
-    }
 
-    // Atualiza a posição X e Y do Mario
-    Mario->position.x += Mario->speed.x * dt;
+    // -> Movimento e colisao no Eixo Y
     Mario->position.y += Mario->speed.y * dt;
+    MarioHitbox(Mario);
+    Mario->canJump = false;
 
-    // Colisão com chão
-    // PLACEHOLDER ATUALMENTE, TEM QUE CONFERIR COM CÓDIGO DE COLISÃO
-    if(Mario->position.y >= GROUND_Y){
-        Mario->position.y = GROUND_Y;
-        if (Mario->speed.y > 0) { // Só zera a velocidade Y se estava caindo
-            Mario->speed.y = 0;
-        }
-        isOnGround = true; // Garante que está no chão para a próxima iteração ou checagens finais
+    for (int i = 0; i < physPlatCount; i++) {
+        PhysPlatform_t *p = &physPlatforms[i];
+        Rectangle pRect = p->rect;
 
-        // Se o estado era pulando e agora tocou o chão:
-        if(Mario->actualState == ACTION_JUMPING){
-            // Se ainda tem velocidade horizontal e não está tentando agachar, muda para andando
-            if(fabsf(Mario->speed.x) > STOP_SPEED_THRESHOLD && !wantsToCrouch){
-                Mario->actualState = ACTION_WALKING;
+        if (CheckCollisionRecs(Mario->hitbox, pRect)) {
+            // Quando aterrissa no bloco
+            if (Mario->speed.y >= 0) {
+                Mario->position.y = pRect.y; // Coloca Mario exatamente em cima
+                Mario->speed.y = 0;
+                isOnGround = true;
+                Mario->canJump = true;
+
+                if (Mario->actualState == ACTION_JUMPING) {
+                    Mario->actualState = (fabsf(Mario->speed.x) > 0) ? ACTION_WALKING : ACTION_IDLE;
+                }
+            } 
+            // Detectar a batida de cabeca no bloco
+            else { // Mario pulando (speed.y<0)
+                float overlap = (pRect.y + pRect.height) - Mario->hitbox.y;
+                Mario->position.y += overlap;
+                Mario->speed.y = 0;
+
+                if (i > 0 && !p->bouncing) {
+                    p->bouncing = true; p->bounceDir = 1; p->bounceOffset = 0.0f;
+                    PlaySound(bumpSound);
+                }
             }
-            // Se está tentando agachar ao aterrissar (e pode agachar).
-            else if(wantsToCrouch && Mario->powerUpState != STATE_SMALL){
-                 Mario->actualState = ACTION_CROUCH;
-                 Mario->speed.x = 0; // Para de mover ao agachar na aterrissagem
-            }
-            // Senão, fica parado.
-            else{
-                Mario->actualState = ACTION_IDLE;
-            }
-        }
-    } else{
-        isOnGround = false; // Confirma que não está no chão
-        // Se não está no chão e o estado não é de pulo (ex: escorregou de uma plataforma)
-        if (Mario->actualState != ACTION_JUMPING && Mario->actualState != ACTION_DEATH) {
-            Mario->actualState = ACTION_JUMPING;
+            MarioHitbox(Mario); // Atualiza novamente a hibox
         }
     }
 
-    // Ajuste final
-    // Se está no chão, praticamente sem Vx, e não está agachado ou deslizando, deixa ele parado
-    if(isOnGround && fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD && Mario->actualState != ACTION_CROUCH && Mario->actualState != ACTION_SLIDE){
+    // -> Ajustes finais de estado
+    // Se não colidiu com nada embaixo, está caindo
+    if (!isOnGround && Mario->actualState != ACTION_JUMPING) {
+         Mario->actualState = ACTION_JUMPING;
+    }
+
+    // Lógica da animação de corrida
+    if(isTryingToRun){
+        Mario->animations.activeSprite->frameSpeed=0.06f;
+    } else {
+        Mario->animations.activeSprite->frameSpeed=0.1f;
+    }
+
+    // Se estiver no chão e parado, garante estado IDLE
+    if (isOnGround && Mario->speed.x == 0 && Mario->actualState != ACTION_CROUCH) {
         Mario->actualState = ACTION_IDLE;
     }
-
-    // Atualizando a Hitbox
-    MarioHitbox(Mario);
 }
 
 
@@ -249,7 +233,7 @@ void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_fra
 void InitMario(Mario_t *Mario){
     printf("[InitMario] Running\n");
 
-    Mario->position = (Vector2){260.0f, 450.0f}; // Posição inicial
+    Mario->position = (Vector2){260.0f, 200.0f}; // Posição inicial
     Mario->speed = (Vector2){0.0f, 0.0f}; // Inicia em repouso (vx, vy = 0)
     Mario->invincible = false; // Inicia "vencível"
     Mario->facingRight = true; // Virado para direita
@@ -259,6 +243,7 @@ void InitMario(Mario_t *Mario){
     Mario->score=0; // Pontuação
     Mario->coins=0; // Quant. de moedas
     Mario->canMove = true; // Booleano para indicar se pode se mover ou não 
+    Mario->canJump = false; // Inicia bloquenado pulo
 
     // Renderizando os arquivos das sprites
     Mario->animations.superMarioSheet = LoadTexture("assets/textures/mario/supermario.png");
