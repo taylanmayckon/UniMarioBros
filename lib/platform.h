@@ -2,7 +2,6 @@
 #define PLATFORM_H
 
 #include "raylib.h"
-#include "mario.h"
 
 // Número máximo de plataformas dinâmicas
 #define MAX_PHYS_PLATFORMS 10
@@ -13,6 +12,8 @@ extern const float GRAVITY;
 extern const float MOVE_SPEED;
 // Força do pulo
 extern const float JUMP_FORCE;
+// Quantidade de plataformas
+extern int physPlatCount;
 
 // Estrutura de plataforma dinâmica
 typedef struct {
@@ -28,6 +29,6 @@ typedef struct {
 void InitPlatforms(PhysPlatform_t *physPlatforms);
 void UpdatePlatforms(PhysPlatform_t *physPlatform);
 void DrawBlocks(PhysPlatform_t *physPlatforms, Texture2D block1);
-void HandleMarioPlatformCollisions(Mario_t *Mario, PhysPlatform_t *physPlatforms, Sound bumpSound);
+// void HandleMarioPlatformCollisions(Mario_t *Mario, PhysPlatform_t *physPlatforms, Sound bumpSound);
 
 #endif // PLATFORM_H

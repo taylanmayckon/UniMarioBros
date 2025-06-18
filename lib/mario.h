@@ -2,6 +2,7 @@
 #define MARIO_H
 
 #include "mario_animdb.h"
+#include "platform.h"
 
 // Enum para os estados do Mário (Quando ele pega flor, etc...)
 typedef enum{
@@ -63,8 +64,8 @@ typedef struct{
     int coins; // Quant. de moedas
     bool invincible; // Quando ele é atacado fica invencível se tiver cogumelo
     bool canMove; // Booleano para indicar se pode se mover ou não 
+    bool canJump; // Booleano para indicar que pode pular
     bool isDying; // Booleano para indicar se está morrendo
-    bool canJump; // PLACEHOLDER PARA NAO DAR ERRO DE COMPILAÇÃO
     bool facingRight; // Se esta olhando para a direita ou não (1: direita, 0: não)
     MarioPowerUpStates_t powerUpState; // Estado atual do Mario (ex: normal, grande)
     MarioActionStates_t actualState; // Ação atual do Mario (parado, correndo, pulando...)
@@ -72,7 +73,7 @@ typedef struct{
 } Mario_t;
 
 // Protótipos de funções:
-void UpdateMario(Mario_t *Mario);
+void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCount, Sound bumpSound);
 void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int currentFrame);
 void InitMario(Mario_t *Mario);
 void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_scale);
