@@ -4,6 +4,7 @@
 #include "mario.h"
 #include "mario_animdb.h"
 #include "platform.h"
+#include "collisions.h"
 
 
 // (NORMAL MARIO) definições para as sprites dele andando (192x18 total -> 16x18/frame)
@@ -68,13 +69,7 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
     bool wantsToCrouch = IsKeyDown(KEY_DOWN);
     bool isTryingToRun = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT); // Detecta corrida (tá no shift)
 
-    float currentMaxMoveSpeed = isTryingToRun ? MARIO_RUN_SPEED : MARIO_WALK_SPEED; // Seleciona qual velocidade ira usar (andando/correndo)
-
-    // // Limpando o estado agachado para não bugar
-    // if(Mario->actualState==ACTION_CROUCH){
-    //     Mario->actualState = ACTION_IDLE;
-    // }
-    
+    float currentMaxMoveSpeed = isTryingToRun ? MARIO_RUN_SPEED : MARIO_WALK_SPEED; // Seleciona qual velocidade ira usar (andando/correndo)    
 
     // -> Logica de estado e Velocidade Horizontal (Vx)
     // Agachar (para Super e Fire Mario, no chao)
@@ -124,27 +119,7 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
     // -> Movimento e colisao no eixo X
     Mario->position.x += Mario->speed.x * dt;
     MarioHitbox(Mario);
-    for (int i = 0; i < physPlatCount; i++) {
-        Rectangle pRect = physPlatforms[i].rect;
-        if (CheckCollisionRecs(Mario->hitbox, pRect)) {
-            // Verifica se é uma colisão horizontal, checando a posição do frame anterior
-            float prev_hitbox_right = Mario->hitbox.x + Mario->hitbox.width - Mario->speed.x * dt;
-            float prev_hitbox_left = Mario->hitbox.x - Mario->speed.x * dt;
-
-            // Colidindo à direita
-            if (Mario->speed.x > 0 && prev_hitbox_right <= pRect.x) {
-                Mario->position.x -= (Mario->hitbox.x + Mario->hitbox.width) - pRect.x;
-                Mario->speed.x = 0;
-            }
-            // Colidindo à esquerda
-            else if (Mario->speed.x < 0 && prev_hitbox_left >= (pRect.x + pRect.width)) {
-                 Mario->position.x += (pRect.x + pRect.width) - Mario->hitbox.x;
-                 Mario->speed.x = 0;
-            }
-            
-            MarioHitbox(Mario);
-        }
-    }
+    CheckMarioHitboxX(Mario, physPlatforms);
 
 
     // -> Pulo e fisica da gravidade
@@ -165,37 +140,9 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
     Mario->position.y += Mario->speed.y * dt;
     MarioHitbox(Mario);
     Mario->canJump = false;
+    // Checa e corrige a colisao e hitbox do mario
+    CheckMarioHitboxY(Mario, physPlatforms, &isOnGround, bumpSound);
 
-    for (int i = 0; i < physPlatCount; i++) {
-        PhysPlatform_t *p = &physPlatforms[i];
-        Rectangle pRect = p->rect;
-
-        if (CheckCollisionRecs(Mario->hitbox, pRect)) {
-            // Quando aterrissa no bloco
-            if (Mario->speed.y >= 0) {
-                Mario->position.y = pRect.y; // Coloca Mario exatamente em cima
-                Mario->speed.y = 0;
-                isOnGround = true;
-                Mario->canJump = true;
-
-                if (Mario->actualState == ACTION_JUMPING) {
-                    Mario->actualState = (fabsf(Mario->speed.x) > 0) ? ACTION_WALKING : ACTION_IDLE;
-                }
-            } 
-            // Detectar a batida de cabeca no bloco
-            else { // Mario pulando (speed.y<0)
-                float overlap = (pRect.y + pRect.height) - Mario->hitbox.y;
-                Mario->position.y += overlap;
-                Mario->speed.y = 0;
-
-                if (i > 0 && !p->bouncing) {
-                    p->bouncing = true; p->bounceDir = 1; p->bounceOffset = 0.0f;
-                    PlaySound(bumpSound);
-                }
-            }
-            MarioHitbox(Mario); // Atualiza novamente a hibox
-        }
-    }
 
     // -> Ajustes finais de estado
     // Se não colidiu com nada embaixo, está caindo
@@ -232,7 +179,7 @@ void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_fra
 void InitMario(Mario_t *Mario){
     printf("[InitMario] Running\n");
 
-    Mario->position = (Vector2){260.0f, 200.0f}; // Posição inicial
+    Mario->position = (Vector2){260.0f, 420.0f}; // Posição inicial
     Mario->speed = (Vector2){0.0f, 0.0f}; // Inicia em repouso (vx, vy = 0)
     Mario->invincible = false; // Inicia "vencível"
     Mario->facingRight = true; // Virado para direita
