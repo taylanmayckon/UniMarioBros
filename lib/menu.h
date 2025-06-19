@@ -1,16 +1,6 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-#include "raylib.h"
-#include "mario.h"
-#include "scene.h"
-#include "platform.h"
-#include "camera.h"
-#include "coin.h"
-
 // Tamanho da tela
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600
