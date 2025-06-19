@@ -1,6 +1,5 @@
 #include "menu.h"
 
-// Variáveis globais compartilhadas
 extern GameScene scene;
 extern Mario_t Mario;
 extern Camera2D gameCamera;
@@ -9,9 +8,6 @@ extern Sound bumpSound;
 extern Sound jumpSound;
 extern Texture2D coinAtlas;
 
-// ==========================
-// Inicialização
-// ==========================
 void InitMenuState(MenuState *g) {
     g->framecounter1 = 0;
     g->framecounter2 = 0;
@@ -480,9 +476,7 @@ void ExitLevelScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
         g->currentScreen = MENU;
     }
 }
-// ==========================
 // Descarregar recursos
-// ==========================
 void UnloadIcons(Icons *a) {
     UnloadTexture(a->trivial_games);
     UnloadTexture(a->logo);
