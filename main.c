@@ -1,83 +1,101 @@
 #include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 #include "raylib.h"
 #include "mario.h"
 #include "scene.h"
 #include "platform.h"
 #include "camera.h"
 #include "coin.h"
+#include "menu.h"
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 600
-
-// Inicializando Mario_t
+GameScene scene;
 Mario_t Mario;
-// Inicializando a câmera
 Camera2D gameCamera;
-// Inicializando o vetor plataformas dinâmicas
 PhysPlatform_t physPlatforms[MAX_PHYS_PLATFORMS];
-
-// Variavel de tempo para testes
-float timer = 0.0f;
-
-// Placeholders para não bugar compilação
 Sound bumpSound;
 Sound jumpSound;
+extern Texture2D coinAtlas;
 
-int main(void){
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "UniMarioBros");
+int main(void) {
+    //Inicialização da Janela e Áudio
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Super Mario Bros");
+    SetExitKey(KEY_NULL);
     InitAudioDevice();
+
+    //Structs principais
+    MenuState menu_state;
+    Icons icons;
+    IconsInvisible iconsinvisible;
+    Audio audio;
+
+    //Inicializações
+    InitMenuState(&menu_state);
+    InitIcons(&icons);
+    InitIconsInvisible(&iconsinvisible, &icons);
+    InitAudio(&audio);
+
+    scene = CreateGameScene("assets/textures/background.png");
+
+    bumpSound = LoadSound("assets/audio/bump.wav");
+    jumpSound = LoadSound("assets/audio/jump.wav");
+    coinAtlas = LoadTexture("assets/textures/items/coin.png");
+
+    InitMario(&Mario);
+    InitPlatforms(physPlatforms);
+    InitCamera(&gameCamera, SCREEN_WIDTH, SCREEN_HEIGHT);
+
     SetTargetFPS(60);
-    GameScene scene = CreateGameScene("assets/textures/background.png"); // Função da biblioteca Scene para configurar o cenário
-    // (PLACHOLDER) bloco para teste de DrawBlocks
-    Texture2D block1 = LoadTexture("assets/textures/blocks/block1.png");
-
-    bumpSound = LoadSound("assets/audio/bump.wav"); // Carrega som bump
-    jumpSound = LoadSound("assets/audio/jump.wav"); // Carrega som pulo
-
-    coinAtlas = LoadTexture("assets/textures/items/coin.png"); // Carrega textura moeda
-
-    InitMario(&Mario); // Inicializando as structs do Mario com valores
-    InitPlatforms(physPlatforms); // Inicializando as plataformas
-    InitCamera(&gameCamera, SCREEN_WIDTH, SCREEN_HEIGHT); // Inicializando a câmera
 
     while (!WindowShouldClose()) {
-        // TESTE DE MORTE
-        // É uma lógica basica de como funciona a morte do Mario
-        timer += GetFrameTime();
-        if (timer > 3.0f && Mario.actualState != ACTION_DYING && Mario.actualState != ACTION_DEAD_ALREADY) {
-            Mario.actualState = ACTION_DYING;
-        }
+        UpdateMusicStream(audio.mario_menu);
 
-        // Verifica se o Mario completou o ciclo de morte e precisa ser resetado
-        if (Mario.actualState == ACTION_DEAD_ALREADY) {
-            ResetMario(&Mario);
-            timer = 0.0f; // Reseta o timer de teste
-        }
-
-
-        // Processando o back
-        UpdateMario(&Mario, physPlatforms, physPlatCount, bumpSound); // Movimentação, física e preparação de output para outras libs
-        // HandleMarioPlatformCollisions(&Mario, physPlatforms, bumpSound); // Atualiza a colisão do Mario
+        UpdateMario(&Mario, physPlatforms, physPlatCount, bumpSound);
         UpdatePlatforms(physPlatforms);
-        UpdateCoins(&Mario); // Atualiza as moedas
-        MoveCamera(&gameCamera, Mario, SCREEN_WIDTH, SCREEN_HEIGHT); // Atualiza os parâmetros da câmera
+        UpdateCoins(&Mario);
+        MoveCamera(&gameCamera, Mario, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-        // Processando o front
         BeginDrawing();
-        ClearBackground(RAYWHITE);
-        BeginMode2D(gameCamera);        
+        ClearBackground(BLACK);
+        BeginMode2D(gameCamera);
 
-        DrawGameScene(scene); // Função da biblioteca Scene para desenhar o cenário
-        DrawCoins(); // Desenha moedas
-        DrawBlocks(physPlatforms, block1);
-        DrawMario(&Mario); // Atualiza a posição do desenho do Mario
+        // Controle de Telas
+        switch (menu_state.currentScreen) {
+            case LOADING_GAME:
+                LoadingGameScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case MENU:
+                MenuScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case OPTIONS:
+                OptionsScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case START:
+                StartScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case LOADING_LEVEL:
+                LoadingLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case LEVEL1:
+                Level1Screen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case OPTIONS_LEVEL:
+                OptionsLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case EXITLEVEL:
+                ExitLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+        }
 
         EndMode2D();
         EndDrawing();
     }
 
-    UnloadGameScene(scene); // Função da biblioteca Scene para liberar os recursos alocados dinamicamente
+    //Liberação dos recursos
+    UnloadAll(&icons, &audio);
     UnloadMario(&Mario);
+  
     CloseWindow();
+
     return 0;
 }
