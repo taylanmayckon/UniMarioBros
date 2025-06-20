@@ -93,6 +93,9 @@ int main(void) {
 
     //Liberação dos recursos
     UnloadAll(&icons, &audio);
+    UnloadMario(&Mario);
+  
+    CloseWindow();
 
     return 0;
 }
