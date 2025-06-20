@@ -1,6 +1,5 @@
 #include "mario_animdb.h"
 
-// Lembra de fazer dps (tanto normal quanto fire mario)
 // Mario normal
 MarioAnimDB_t InitSmallMarioDB(){
     MarioAnimDB_t db;
