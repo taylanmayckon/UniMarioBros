@@ -22,6 +22,9 @@
 // Escala que vai ser desenhado na tela a sprite
 #define MARIO_SPRITE_SCALE 3.0f
 
+// Posicao inicial do mario
+#define MARIO_START_POSITION (Vector2){260.0f, 300.0f}
+
 // Constantes de Física e Movimento 
 #define MARIO_WALK_SPEED 200.0f // Velocidade de caminhada base
 #define MARIO_RUN_SPEED 320.0f // Velocidade de corrida
@@ -37,7 +40,7 @@
 
 // Retangulo de colisão do Mario
 void MarioHitbox(Mario_t *Mario){
-    MarioSprite_t *sprite = Mario->animations.activeSprite; // Sprite ativa
+    MarioSprite_t *sprite = Mario->assets.activeSprite; // Sprite ativa
     float width  = sprite->frameWidthCut * MARIO_SPRITE_SCALE; // Largura
     float height = sprite->frameHeightCut * MARIO_SPRITE_SCALE; // Altura
 
@@ -48,15 +51,82 @@ void MarioHitbox(Mario_t *Mario){
         x + 12.0f,  // Ajuste X
         y, // Ajuste Y
         width - 24.0f, // Ajuste largura
-        height + 2.0f  // Ajuste altura
+        height + 2.0f  // Ajuste altura 
     };
 }
 
+// Funcao para resetar o Mario quando morre 
+void ResetMario(Mario_t *Mario){
+    Mario->position = MARIO_START_POSITION; // Posição inicial
+    Mario->speed = (Vector2){0.0f, 0.0f}; // Inicia em repouso (vx, vy = 0)
+    Mario->invincible = false; // Inicia "vencível"
+    Mario->facingRight = true; // Virado para direita
+    Mario->powerUpState = STATE_SMALL; // Estado do mario (normal, super,)
+    Mario->actualState = ACTION_IDLE; // Parado
+    Mario->canMove = true; // Booleano para indicar se pode se mover ou não 
+    Mario->canJump = false; // Inicia bloquenado pulo
+    Mario->deadStarted = false; // Indica que nao comecou a morrer ainda
+    Mario->deadSoundTimer = 0.0f; // Timer do som de morte
+    Mario->deadSoundPlayed = false; // Reseta flag se tocou som de morte
+}
+
+
+// Animação de morte do Mario
+void deathAnim(Mario_t *Mario, int death_frame){ 
+    MarioSprite_t *sprite = Mario->assets.activeSprite; // Pegando o endereço da sprite de morte
+    float dt = GetFrameTime();
+    Mario->assets.activeSprite->currentFrame = death_frame;
+
+    // Gravidade de morte (a mesma do movimento de pulo, mas sem colisao)
+    Mario->speed.y += GRAVITY * dt;
+    if (Mario->speed.y > MAX_FALL_SPEED) {
+        Mario->speed.y = MAX_FALL_SPEED;
+    }
+    // -> Movimento e colisao no Eixo Y
+    Mario->position.y += Mario->speed.y * dt;
+}
+
+
 // Pega inputs do teclado, processa a física e gera outputs para outras libs
 void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCount, Sound bumpSound) {
-    // Se estiver na animação de morte ou se tiver em alguma outra animação (tipo pegar cogumelo/flor), UpdateMario retorna já aqui
-    if(Mario->isDying || !Mario->canMove){
-        Mario->speed.x = 0; // Para garantir que não deslize se morrer andando
+    // Considera que está morto sempre que some da tela
+    if(Mario->position.y > 700.0f){ // O fim da tela + uns quebrados
+        // Se o Mario caiu, ele está no processo de morrer
+        Mario->actualState = ACTION_DYING; 
+        
+        if (!Mario->deadSoundPlayed) {
+            PlaySound(Mario->assets.deathSound);
+            Mario->deadSoundPlayed = true;
+            Mario->deadSoundTimer = 0.0f;
+        }
+        
+        Mario->deadSoundTimer += GetFrameTime();
+
+        if (Mario->deadSoundTimer >= 4.0f) {
+            Mario->lives--;
+            Mario->actualState = ACTION_DEAD_ALREADY; // AGORA sim, ele está pronto para o reset
+        }
+        return; // Retorna para não processar mais nada
+    }
+
+    // Sinaliza que tem que travar o movimento na morte
+    if(Mario->actualState == ACTION_DYING){
+        if(!Mario->deadStarted){
+            Mario->speed.y = -MARIO_JUMP_STRENGTH; // Aplica o impulso inicial da morte
+            Mario->deadStarted = true; // Sinaliza que comecou animacao de morte agora
+            // Verifica se pode tocar o som e sinaliza que ja tocou o mesmo
+            if(!Mario->deadSoundPlayed){
+                PlaySound(Mario->assets.deathSound);
+                Mario->deadSoundPlayed = true;
+                Mario->deadSoundTimer = 0.0f;
+            }
+        }
+        Mario->canMove = false;
+    }
+
+    // Trava o movimento do mario quando necessario (tipo morrer ou pegar cogumelo/flor), UpdateMario retorna já aqui
+    if(!Mario->canMove){
+        Mario->speed.x = 0; // Para garantir que não deslize
         return;
     }
 
@@ -150,11 +220,11 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
          Mario->actualState = ACTION_JUMPING;
     }
 
-    // Lógica da animação de corrida
+    // Lógica do FPS da animação de corrida
     if(isTryingToRun){
-        Mario->animations.activeSprite->frameSpeed=0.06f;
+        Mario->assets.activeSprite->frameSpeed=0.06f;
     } else {
-        Mario->animations.activeSprite->frameSpeed=0.1f;
+        Mario->assets.activeSprite->frameSpeed=0.1f;
     }
 
     // Se estiver no chão e parado, garante estado IDLE
@@ -179,7 +249,7 @@ void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_fra
 void InitMario(Mario_t *Mario){
     printf("[InitMario] Running\n");
 
-    Mario->position = (Vector2){260.0f, 420.0f}; // Posição inicial
+    Mario->position = MARIO_START_POSITION; // Posição inicial
     Mario->speed = (Vector2){0.0f, 0.0f}; // Inicia em repouso (vx, vy = 0)
     Mario->invincible = false; // Inicia "vencível"
     Mario->facingRight = true; // Virado para direita
@@ -190,22 +260,24 @@ void InitMario(Mario_t *Mario){
     Mario->coins=0; // Quant. de moedas
     Mario->canMove = true; // Booleano para indicar se pode se mover ou não 
     Mario->canJump = false; // Inicia bloquenado pulo
+    Mario->deadStarted = false; // Indica que nao comecou a morrer ainda
+    Mario->deadSoundTimer = 0.0f; // Timer do som de morte
 
     // Renderizando os arquivos das sprites
-    Mario->animations.superMarioSheet = LoadTexture("assets/textures/mario/supermario.png");
-    Mario->animations.smallMarioSheet = LoadTexture("assets/textures/mario/smallmario.png");
-    Mario->animations.fireMarioSheet = LoadTexture("assets/textures/mario/firemario.png");
+    Mario->assets.superMarioSheet = LoadTexture("assets/textures/mario/supermario.png");
+    Mario->assets.smallMarioSheet = LoadTexture("assets/textures/mario/smallmario.png");
+    Mario->assets.fireMarioSheet = LoadTexture("assets/textures/mario/firemario.png");
 
     // Pegando os dados do "Banco de dados" de animações
-    Mario->animations.smallMarioAnimDB = InitSmallMarioDB();
-    Mario->animations.superMarioAnimDB = InitSuperMarioDB();
-    Mario->animations.fireMarioAnimDB = InitFireMarioDB();
+    Mario->assets.smallMarioAnimDB = InitSmallMarioDB();
+    Mario->assets.superMarioAnimDB = InitSuperMarioDB();
+    Mario->assets.fireMarioAnimDB = InitFireMarioDB();
 
     // Iniciando as sprites
     // -> Mario Normal
     InitSprite(
-        &Mario->animations.smallMarioSprite, // Ponteiro para a sprite 
-        Mario->animations.smallMarioSheet, // Ponteiro para a textura carregada
+        &Mario->assets.smallMarioSprite, // Ponteiro para a sprite 
+        Mario->assets.smallMarioSheet, // Ponteiro para a textura carregada
         (Rectangle){0.0f, 0.0f, // Posição da origem dos frames
                     NORMAL_MARIO_FRAME_WIDHT_CUT, NORMAL_MARIO_FRAME_HEIGHT_CUT}, // Largura e altura de cada frame
         0.1f, // Tempo de cada frame
@@ -213,8 +285,8 @@ void InitMario(Mario_t *Mario){
         7); // Frame atual
     // -> Super Mario
     InitSprite(
-        &Mario->animations.superMarioSprite, // Ponteiro para a sprite 
-        Mario->animations.superMarioSheet, // Ponteiro para a textura carregada
+        &Mario->assets.superMarioSprite, // Ponteiro para a sprite 
+        Mario->assets.superMarioSheet, // Ponteiro para a textura carregada
         (Rectangle){0.0f, 0.0f, // Posição da origem dos frames
                     SUPER_MARIO_FRAME_WIDHT_CUT, SUPER_MARIO_FRAME_HEIGHT_CUT}, // Largura e altura de cada frame
         0.1f, // Tempo de cada frame
@@ -222,8 +294,8 @@ void InitMario(Mario_t *Mario){
         6); // Frame atual
     // -> Fire Mario (placeholder atualmente)
     InitSprite(
-        &Mario->animations.fireMarioSprite, // Ponteiro para a sprite 
-        Mario->animations.fireMarioSheet, // Ponteiro para a textura carregada
+        &Mario->assets.fireMarioSprite, // Ponteiro para a sprite 
+        Mario->assets.fireMarioSheet, // Ponteiro para a textura carregada
         (Rectangle){0.0f, 0.0f, // Posição da origem dos frames
                     FIRE_MARIO_FRAME_WIDHT_CUT, FIRE_MARIO_FRAME_HEIGHT_CUT}, // Largura e altura de cada frame
         0.1f, // Tempo de cada frame
@@ -231,14 +303,17 @@ void InitMario(Mario_t *Mario){
         6); // Frame atual
 
     // -> Iniciando com a sprite do mario normal
-    Mario->animations.activeSprite = &Mario->animations.smallMarioSprite;
+    Mario->assets.activeSprite = &Mario->assets.smallMarioSprite;
+
+    // Carregando o audio da morte
+    Mario->assets.deathSound = LoadSound("assets/audio/mario_death.mp3");
     
     printf("[InitMario] Finished\n");
 }
 
 // Função para mover a sprite de lugar e desenhá-la
 void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_scale){
-    MarioSprite_t *sprite = Mario->animations.activeSprite;
+    MarioSprite_t *sprite = Mario->assets.activeSprite;
     
     // Posição
     // Como o frame começa a ser desenhado no canto superior esquerdo, precisa de offsets
@@ -270,7 +345,7 @@ void ChangeMarioSpritePosition(Mario_t *Mario, float width_scale, float height_s
 
 // Função auxiliar para não permitir um index fora do range na troca de animações
 void ConstrainIndex(Mario_t *Mario, FrameRange_t range){
-    MarioSprite_t *sprite = Mario->animations.activeSprite;
+    MarioSprite_t *sprite = Mario->assets.activeSprite;
 
     if(sprite->currentFrame < range.start){
         sprite->currentFrame = range.start;
@@ -282,7 +357,7 @@ void ConstrainIndex(Mario_t *Mario, FrameRange_t range){
 
 // Função para CONTROLAR a temporização dos frames das sprites
 void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range){ // first_frame e end_frame são o intervalo da animação    
-    MarioSprite_t *sprite = Mario->animations.activeSprite;
+    MarioSprite_t *sprite = Mario->assets.activeSprite;
 
     // Corrigindo o range caso esteja fora do intervalo
     ConstrainIndex(Mario, range);
@@ -313,21 +388,6 @@ void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range){ // first_frame e end
 }
 
 
-// Animação de morte do Mario
-void deathAnim(Mario_t *Mario, int frame_index){ 
-    MarioSprite_t *sprite = Mario->animations.activeSprite; // Pegando o endereço da sprite de morte
-
-    // Acumula o tempo que passou desde a ultima atualização da animação
-    // Na pratica é um cronometro
-    sprite->frameTimer += GetFrameTime();
-    if(sprite->frameTimer >= sprite->frameSpeed){ // Verificando se tá na hora de alterar o frame da animação
-        sprite->frameTimer = 0; // Reinicia o cronometro
-        Mario->position.y -= 1.0f; // Faz o Mario ir para baixo
-        Mario->animations.activeSprite->currentFrame = frame_index;
-    }
-}
-
-
 // Função para selecionar qual sprite será manipulada e desenhada
 void DrawMario(Mario_t *Mario){
     // Ponteiros para manipular as infos de animação de Mario
@@ -337,16 +397,16 @@ void DrawMario(Mario_t *Mario){
     // Selecionando o banco de dados das animações, conforme o estado atual do Mario e alterando o endereço para a sprite ativa
     switch(Mario->powerUpState){
         case STATE_SMALL:
-            currentAnimDB = &Mario->animations.smallMarioAnimDB; // Atualiza o DB
-            Mario->animations.activeSprite = &Mario->animations.smallMarioSprite; // Pega o endereço correto para a sprite do estado atual
+            currentAnimDB = &Mario->assets.smallMarioAnimDB; // Atualiza o DB
+            Mario->assets.activeSprite = &Mario->assets.smallMarioSprite; // Pega o endereço correto para a sprite do estado atual
             break;
         case STATE_SUPER:
-            currentAnimDB = &Mario->animations.superMarioAnimDB; // Atualiza o DB
-            Mario->animations.activeSprite = &Mario->animations.superMarioSprite; // Pega o endereço correto para a sprite do estado atual
+            currentAnimDB = &Mario->assets.superMarioAnimDB; // Atualiza o DB
+            Mario->assets.activeSprite = &Mario->assets.superMarioSprite; // Pega o endereço correto para a sprite do estado atual
             break;
         case STATE_FIRE:
-            currentAnimDB = &Mario->animations.fireMarioAnimDB; // Atualiza o DB
-            Mario->animations.activeSprite = &Mario->animations.fireMarioSprite; // Pega o endereço correto para a sprite do estado atual
+            currentAnimDB = &Mario->assets.fireMarioAnimDB; // Atualiza o DB
+            Mario->assets.activeSprite = &Mario->assets.fireMarioSprite; // Pega o endereço correto para a sprite do estado atual
             break;
     }
 
@@ -367,9 +427,17 @@ void DrawMario(Mario_t *Mario){
         case ACTION_CROUCH:
             currentAnimData = &currentAnimDB->crouch;
             break;
-        case ACTION_DEATH:
+        case ACTION_DYING:
             currentAnimData = &currentAnimDB->death;
             break;
+        case ACTION_DEAD_ALREADY:
+            // Mario tá morto, nao tem animacao
+            break;
+    }
+
+    // Retorna se nao tiver animacao para exibir (Mario morto)
+    if(currentAnimData == NULL){
+        return;
     }
 
     // Usando os dados selecionados para animar e desenhar
@@ -387,29 +455,31 @@ void DrawMario(Mario_t *Mario){
     }
     else{ // Se é frame fixo
         if(Mario->facingRight){ // Virado para direita
-            Mario->animations.activeSprite->currentFrame = currentAnimData->freezedFrameRight;
+            Mario->assets.activeSprite->currentFrame = currentAnimData->freezedFrameRight;
         }
         else{ // Esquerda
-            Mario->animations.activeSprite->currentFrame = currentAnimData->freezedFrameLeft;
+            Mario->assets.activeSprite->currentFrame = currentAnimData->freezedFrameLeft;
         }
     }
 
-    // Se estiver morrendo
-    if(Mario->isDying){
-        Mario->animations.activeSprite->frameSpeed = 0.15f; // Tempo de atualização da animação de morte
-        Mario->canMove = false; // Desativa a possibilidade de andar
+    // Se estiver morrendo, ativa a animacao de morte
+    if(Mario->actualState == ACTION_DYING){
         deathAnim(Mario, currentAnimData->freezedFrameLeft); // Atualiza a animação de morte
-
-        if(Mario->position.y <= 0.0f){ // Quando ele some da tela
-            Mario->canMove = true; // Libera movimento
-            Mario->isDying = false; // Desativa morte
-            Mario->animations.activeSprite->frameSpeed = 0.1f; // Volta o tempo original de animação
-        }
     }
 
     // Desenha a sprite na tela
     ChangeMarioSpritePosition(
         Mario,
-        Mario->animations.activeSprite->frameWidthCut * MARIO_SPRITE_SCALE,
-        Mario->animations.activeSprite->frameHeightCut * MARIO_SPRITE_SCALE);
+        Mario->assets.activeSprite->frameWidthCut * MARIO_SPRITE_SCALE,
+        Mario->assets.activeSprite->frameHeightCut * MARIO_SPRITE_SCALE);
+}
+
+
+// Descarrega os assets do Mario
+void UnloadMario(Mario_t *Mario){
+    UnloadTexture(Mario->assets.superMarioSheet);
+    UnloadTexture(Mario->assets.smallMarioSheet);
+    UnloadTexture(Mario->assets.fireMarioSheet);
+
+    UnloadSound(Mario->assets.deathSound);
 }

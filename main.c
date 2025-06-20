@@ -41,6 +41,20 @@ int main(void){
     InitCamera(&gameCamera, SCREEN_WIDTH, SCREEN_HEIGHT); // Inicializando a câmera
 
     while (!WindowShouldClose()) {
+        // TESTE DE MORTE
+        // É uma lógica basica de como funciona a morte do Mario
+        timer += GetFrameTime();
+        if (timer > 3.0f && Mario.actualState != ACTION_DYING && Mario.actualState != ACTION_DEAD_ALREADY) {
+            Mario.actualState = ACTION_DYING;
+        }
+
+        // Verifica se o Mario completou o ciclo de morte e precisa ser resetado
+        if (Mario.actualState == ACTION_DEAD_ALREADY) {
+            ResetMario(&Mario);
+            timer = 0.0f; // Reseta o timer de teste
+        }
+
+
         // Processando o back
         UpdateMario(&Mario, physPlatforms, physPlatCount, bumpSound); // Movimentação, física e preparação de output para outras libs
         // HandleMarioPlatformCollisions(&Mario, physPlatforms, bumpSound); // Atualiza a colisão do Mario
@@ -63,6 +77,7 @@ int main(void){
     }
 
     UnloadGameScene(scene); // Função da biblioteca Scene para liberar os recursos alocados dinamicamente
+    UnloadMario(&Mario);
     CloseWindow();
     return 0;
 }

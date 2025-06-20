@@ -18,7 +18,8 @@ typedef enum{
     ACTION_JUMPING, // Mario pulando
     ACTION_SLIDE, // Mario deslizando (parando de correr)
     ACTION_CROUCH, // Mario abaixado
-    ACTION_DEATH, // Morte
+    ACTION_DYING, // Morrendo
+    ACTION_DEAD_ALREADY, // Morto de fato
     ACTION_THROW, // Jogar bola de fogo
 } MarioActionStates_t;
 
@@ -51,7 +52,9 @@ typedef struct{
     MarioAnimDB_t smallMarioAnimDB; // Mario normal
     MarioAnimDB_t superMarioAnimDB; // Super mario
     MarioAnimDB_t fireMarioAnimDB; // Fire mario
-} MarioAnimation_t;
+    // Som de morte
+    Sound deathSound;
+} MarioAssets_t;
 
 
 // Struct principal do Mario
@@ -65,11 +68,13 @@ typedef struct{
     bool invincible; // Quando ele é atacado fica invencível se tiver cogumelo
     bool canMove; // Booleano para indicar se pode se mover ou não 
     bool canJump; // Booleano para indicar que pode pular
-    bool isDying; // Booleano para indicar se está morrendo
     bool facingRight; // Se esta olhando para a direita ou não (1: direita, 0: não)
+    bool deadStarted; // Booleano para indicar se a animacao de morte ja comecou ou nao (para indicar quando comeca gravidade)
+    bool deadSoundPlayed; // Indica se o som de morte tocou ou nao
+    float deadSoundTimer; // Deixa o som de morte tocar todo antes de prosseguir
     MarioPowerUpStates_t powerUpState; // Estado atual do Mario (ex: normal, grande)
     MarioActionStates_t actualState; // Ação atual do Mario (parado, correndo, pulando...)
-    MarioAnimation_t animations; // Todas as animações agrupadas
+    MarioAssets_t assets; // Todas as animações agrupadas
 } Mario_t;
 
 // Protótipos de funções:
@@ -81,5 +86,7 @@ void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range);
 void deathAnim(Mario_t *Mario, int frame_index);
 void DrawMario(Mario_t *Mario);
 void MarioHitbox(Mario_t *Mario);
+void UnloadMario(Mario_t *Mario);
+void ResetMario(Mario_t *Mario);
 
 #endif
