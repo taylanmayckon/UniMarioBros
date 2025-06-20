@@ -50,6 +50,7 @@ void InitMenuState(MenuState *g) {
 
 void InitIcons(Icons *a) {
     a->trivial_games = LoadTexture("assets/textures/icons/trivial_games.png");
+    a->icon_window = LoadImage ("assets/textures/icons/icon.png");
     a->logo = LoadTexture("assets/textures/icons/logo.png");
     a->background_menu = LoadTexture("assets/textures/icons/background_menu.png");
     a->start_button = LoadTexture("assets/textures/icons/play.png");
@@ -487,6 +488,7 @@ void ExitLevelScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
 // Descarregar recursos
 void UnloadIcons(Icons *a) {
     UnloadTexture(a->trivial_games);
+    UnloadImage  (a->icon_window);
     UnloadTexture(a->logo);
     UnloadTexture(a->background_menu);
     UnloadTexture(a->start_button);
@@ -528,4 +530,3 @@ void UnloadAll(Icons *a, Audio *au) {
     CloseAudioDevice();
     CloseWindow();
 }
-
