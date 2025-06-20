@@ -11,7 +11,7 @@ void InitCamera(Camera2D *gameCamera, int width, int height){
 
 void MoveCamera(Camera2D *gameCamera, Mario_t Mario, int width, int height){
     float camTargetX = roundf(Mario.position.x); // Arredonda X da câmera
-    gameCamera->target = (Vector2){ camTargetX, 290.0f }; // Atualiza alvo da câmera
+    gameCamera->target = (Vector2){ camTargetX, 300.0f }; // Atualiza alvo da câmera
     
     // Limita câmera à esquerda
     if (gameCamera->target.x < width / 2.0f){
