@@ -179,7 +179,7 @@ void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_fra
 void InitMario(Mario_t *Mario){
     printf("[InitMario] Running\n");
 
-    Mario->position = (Vector2){260.0f, 420.0f}; // Posição inicial
+    Mario->position = (Vector2){260.0f, 300.0f}; // Posição inicial
     Mario->speed = (Vector2){0.0f, 0.0f}; // Inicia em repouso (vx, vy = 0)
     Mario->invincible = false; // Inicia "vencível"
     Mario->facingRight = true; // Virado para direita

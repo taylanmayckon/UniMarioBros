@@ -1,4 +1,12 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 #include "menu.h"
+#include "mario.h"
+#include "raylib.h"
+#include "scene.h"
+#include "platform.h"
+#include "coin.h"
 
 extern GameScene scene;
 extern Mario_t Mario;
