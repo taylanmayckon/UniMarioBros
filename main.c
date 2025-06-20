@@ -7,6 +7,7 @@
 #include "platform.h"
 #include "camera.h"
 #include "coin.h"
+#include "inimigos.h"
 #include "menu.h"
 
 GameScene scene;
@@ -50,9 +51,6 @@ int main(void) {
     while (!WindowShouldClose()) {
         UpdateMusicStream(audio.mario_menu);
 
-        UpdateMario(&Mario, physPlatforms, physPlatCount, bumpSound);
-        UpdatePlatforms(physPlatforms);
-        UpdateCoins(&Mario);
         MoveCamera(&gameCamera, Mario, SCREEN_WIDTH, SCREEN_HEIGHT);
 
         BeginDrawing();
@@ -77,6 +75,9 @@ int main(void) {
                 LoadingLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
                 break;
             case LEVEL1:
+                UpdateMario(&Mario, physPlatforms, physPlatCount, bumpSound);
+                UpdatePlatforms(physPlatforms);
+                UpdateCoins(&Mario);
                 Level1Screen(&menu_state, &icons, &audio, &iconsinvisible);
                 break;
             case OPTIONS_LEVEL:
