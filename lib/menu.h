@@ -30,6 +30,7 @@ typedef struct {
 // Struct de Texturas
 typedef struct {
     Texture2D trivial_games;
+    Image icon_window;
     Texture2D logo;
     Texture2D background_menu;
     Texture2D start_button;
