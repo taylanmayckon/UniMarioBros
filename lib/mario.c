@@ -27,13 +27,13 @@
 
 // Constantes de Física e Movimento 
 #define MARIO_WALK_SPEED 200.0f // Velocidade de caminhada base
-#define MARIO_RUN_SPEED 320.0f // Velocidade de corrida
+#define MARIO_RUN_SPEED 400.0f // Velocidade de corrida
 #define MARIO_JUMP_STRENGTH 730.0f // Força inicial do pulo
 #define GRAVITY 1300.0f // Aceleração da gravidade (pixels/s^2)
 #define MAX_FALL_SPEED 650.0f // Velocidade máxima de queda
-#define GROUND_FRICTION_COEFF 0.92f // Coeficiente de atrito com o chão (quanto menor, maior o atrito)
+#define WALK_GROUND_FRICTION_COEFF 0.94f // Coeficiente de atrito andando (quanto menor, maior o atrito)
+#define SLIDE_GROUND_FRICTION_COEFF 0.84f // Coeficiente de atrito deslizando (quanto menor, maior o atrito)
 #define AIR_FRICTION_COEFF 0.98f // Coeficiente de atrito no ar (2 anos de aero, se tá no ar tem arrasto)
-#define SLIDE_DECELERATION 450.0f // Desaceleração ao deslizar (pixels/s^2)
 #define STOP_SPEED_THRESHOLD 10.0f  // Abaixo desta Vy, considera-se parado
 #define GROUND_Y 450.0f // Placeholder de chão só para testes (tem que pegar isso do código de colisões)
 
@@ -159,7 +159,7 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
         // Trata o slide
         if(Mario->actualState == ACTION_SLIDE){
              // Desaceleracao por atrito
-            Mario->speed.x *= powf(GROUND_FRICTION_COEFF, dt * 60.0f);
+            Mario->speed.x *= powf(SLIDE_GROUND_FRICTION_COEFF, dt * 60.0f);
             // Limitante inferior de Vx
             if(fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD){
                 Mario->speed.x = 0.0f;
@@ -185,7 +185,7 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
             // Atrito do chao
             if(Mario->canJump){ 
                 // Aplica atrito do chão
-                Mario->speed.x *= powf(GROUND_FRICTION_COEFF, dt * 60.0f);
+                Mario->speed.x *= powf(WALK_GROUND_FRICTION_COEFF, dt * 60.0f);
             }
             else{
                 // Arrasto do ar
@@ -211,7 +211,7 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
 
     // -> Pulo e fisica da gravidade
     // Pulo
-    if (IsKeyPressed(KEY_SPACE) && Mario->canJump && Mario->actualState != ACTION_CROUCH) {
+    if ((IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_UP)) && Mario->canJump && Mario->actualState != ACTION_CROUCH) {
         Mario->speed.y = -MARIO_JUMP_STRENGTH;
         Mario->actualState = ACTION_JUMPING;
         Mario->canJump = false; // Só pode pular de novo quando tocar o chão
