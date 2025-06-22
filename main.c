@@ -57,36 +57,36 @@ int main(void) {
         ClearBackground(BLACK);
         BeginMode2D(gameCamera);
 
-        // Controle de Telas
-        // switch (menu_state.currentScreen) {
-        //     case LOADING_GAME:
-        //         LoadingGameScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break;
-        //     case MENU:
-        //         MenuScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break;
-        //     case OPTIONS:
-        //         OptionsScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break;
-        //     case START:
-        //         StartScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break;
-        //     case LOADING_LEVEL:
-        //         LoadingLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break;
-        //     case LEVEL1:
+        //Controle de Telas
+        switch (menu_state.currentScreen) {
+            case LOADING_GAME:
+                LoadingGameScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case MENU:
+                MenuScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case OPTIONS:
+                OptionsScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case START:
+                StartScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case LOADING_LEVEL:
+                LoadingLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case LEVEL1:
                 UpdateMario(&Mario, physPlatforms, physPlatCount, bumpSound);
                 UpdatePlatforms(physPlatforms);
                 UpdateCoins(&Mario);
                 Level1Screen(&menu_state, &icons, &audio, &iconsinvisible);
-                // break;
-        //     case OPTIONS_LEVEL:
-        //         OptionsLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break;
-        //     case EXITLEVEL:
-        //         ExitLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break;
-        // }
+                break;
+            case OPTIONS_LEVEL:
+                OptionsLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case EXITLEVEL:
+                ExitLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+        }
 
         EndMode2D();
         EndDrawing();

@@ -7,19 +7,18 @@
 #include "collisions.h"
 
 
-// (NORMAL MARIO) definições para as sprites dele andando (192x18 total -> 16x18/frame)
+// -> DIMENSOES DAS SPRITES DO MARIO
+// (NORMAL MARIO) 
 #define NORMAL_MARIO_FRAME_WIDHT_CUT 16.0f
 #define NORMAL_MARIO_FRAME_HEIGHT_CUT 16.0f
-
-// (SUPER MARIO) definições para as sprites dele andando (228x34 total -> 16,0x34/frame)
+// (SUPER MARIO) 
 #define SUPER_MARIO_FRAME_WIDHT_CUT 16.0f
 #define SUPER_MARIO_FRAME_HEIGHT_CUT 30.0f
-
-// (FIRE MARIO) placeholders, falta alterar
+// (FIRE MARIO) 
 #define FIRE_MARIO_FRAME_WIDHT_CUT 16.0f
 #define FIRE_MARIO_FRAME_HEIGHT_CUT 31.0f
 
-// Escala que vai ser desenhado na tela a sprite
+// Escala que vai ser desenhado na tela 
 #define MARIO_SPRITE_SCALE 3.0f
 
 // Posicao inicial do mario
@@ -29,13 +28,13 @@
 #define MARIO_WALK_SPEED 200.0f // Velocidade de caminhada base
 #define MARIO_RUN_SPEED 400.0f // Velocidade de corrida
 #define MARIO_JUMP_STRENGTH 730.0f // Força inicial do pulo
-#define GRAVITY 1300.0f // Aceleração da gravidade (pixels/s^2)
+#define GRAVITY 1400.0f // Aceleração da gravidade (pixels/s^2)
 #define MAX_FALL_SPEED 650.0f // Velocidade máxima de queda
 #define WALK_GROUND_FRICTION_COEFF 0.94f // Coeficiente de atrito andando (quanto menor, maior o atrito)
 #define SLIDE_GROUND_FRICTION_COEFF 0.84f // Coeficiente de atrito deslizando (quanto menor, maior o atrito)
 #define AIR_FRICTION_COEFF 0.98f // Coeficiente de atrito no ar (2 anos de aero, se tá no ar tem arrasto)
-#define STOP_SPEED_THRESHOLD 10.0f  // Abaixo desta Vy, considera-se parado
-#define GROUND_Y 450.0f // Placeholder de chão só para testes (tem que pegar isso do código de colisões)
+#define STOP_SPEED_THRESHOLD 10.0f  // Abaixo desta Vx, considera-se parado
+#define MARIO_AIR_ACCELERATION 1600.0f // Aceleração que o jogador pode aplicar no ar (pixels/s^2)
 
 
 // Retangulo de colisão do Mario
@@ -68,6 +67,7 @@ void ResetMario(Mario_t *Mario){
     Mario->deadStarted = false; 
     Mario->deadSoundTimer = 0.0f; 
     Mario->deadSoundPlayed = false; 
+    Mario->countAirTimeX = 0.0f;
 }
 
 
@@ -138,7 +138,7 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
     bool isTryingToRun = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT); 
 
     // Modifica pra fazer aumento gradual de velocidade de andar até correr na vel max
-    float currentMaxMoveSpeed = isTryingToRun ? MARIO_RUN_SPEED : MARIO_WALK_SPEED;   
+    float currentMoveSpeed = isTryingToRun ? MARIO_RUN_SPEED : MARIO_WALK_SPEED;   
 
     // -> Logica de estado e Velocidade Horizontal (Vx)
     // Agachar (para Super e Fire Mario, no chao)
@@ -148,57 +148,80 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
     }
     // Atualiza Vx, caso nao agache
     else{
-        if(Mario->actualState == ACTION_CROUCH) Mario->actualState = ACTION_IDLE;  // Levanta se estava agachado
+        // Vx no chao
+        if(Mario->canJump){
+            // Reseta o timer de controle no ar
+            Mario->countAirTimeX = 0.0f;
 
-        // Detecta se deve ativar o slide
-        bool isTryingToSlide = (wantsToMoveLeft && Mario->speed.x > STOP_SPEED_THRESHOLD) || (wantsToMoveRight && Mario->speed.x < -STOP_SPEED_THRESHOLD) ;
+            if(Mario->actualState == ACTION_CROUCH) Mario->actualState = ACTION_IDLE;  // Levanta se estava agachado
 
-        // Aciona slide
-        if(isTryingToSlide && Mario->canJump) Mario->actualState = ACTION_SLIDE;
+            // Detecta se deve ativar o slide
+            bool isTryingToSlide = (wantsToMoveLeft && Mario->speed.x > STOP_SPEED_THRESHOLD) || (wantsToMoveRight && Mario->speed.x < -STOP_SPEED_THRESHOLD) ;
 
-        // Trata o slide
-        if(Mario->actualState == ACTION_SLIDE){
-             // Desaceleracao por atrito
-            Mario->speed.x *= powf(SLIDE_GROUND_FRICTION_COEFF, dt * 60.0f);
-            // Limitante inferior de Vx
-            if(fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD){
-                Mario->speed.x = 0.0f;
-                if(Mario->actualState == ACTION_WALKING){
-                    Mario->actualState = ACTION_IDLE;
+            // Aciona slide
+            if(isTryingToSlide && Mario->canJump) Mario->actualState = ACTION_SLIDE;
+
+            // Trata o slide
+            if(Mario->actualState == ACTION_SLIDE){
+                // Desaceleracao por atrito
+                Mario->speed.x *= powf(SLIDE_GROUND_FRICTION_COEFF, dt * 60.0f);
+                // Limitante inferior de Vx
+                if(fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD){
+                    Mario->speed.x = 0.0f;
+                    if(Mario->actualState == ACTION_WALKING){
+                        Mario->actualState = ACTION_IDLE;
+                    }
                 }
             }
-        }
 
-        // Movimento horizontal
-        else if(wantsToMoveLeft && !wantsToMoveRight){ // Esquerda
-            Mario->speed.x = -currentMaxMoveSpeed;
-            Mario->facingRight = false;
-            if (Mario->actualState != ACTION_JUMPING) Mario->actualState = ACTION_WALKING; // Troca para anim de andar, caso nao esteja pulando
-        }
-        else if(!wantsToMoveLeft && wantsToMoveRight){ // Direita
-            Mario->speed.x = currentMaxMoveSpeed;
-            Mario->facingRight = true;
-            if (Mario->actualState != ACTION_JUMPING) Mario->actualState = ACTION_WALKING; // Troca para anim de andar, caso nao esteja pulando
-        }
-        // Atrito e desaceleracao 
-        else{
-            // Atrito do chao
-            if(Mario->canJump){ 
+            // Movimento horizontal
+            else if(wantsToMoveLeft && !wantsToMoveRight){ // Esquerda
+                Mario->speed.x = -currentMoveSpeed;
+                Mario->facingRight = false;
+                if (Mario->actualState != ACTION_JUMPING) Mario->actualState = ACTION_WALKING; // Troca para anim de andar, caso nao esteja pulando
+            }
+            else if(!wantsToMoveLeft && wantsToMoveRight){ // Direita
+                Mario->speed.x = currentMoveSpeed;
+                Mario->facingRight = true;
+                if (Mario->actualState != ACTION_JUMPING) Mario->actualState = ACTION_WALKING; // Troca para anim de andar, caso nao esteja pulando
+            }
+            // Atrito e desaceleracao 
+            else{
                 // Aplica atrito do chão
                 Mario->speed.x *= powf(WALK_GROUND_FRICTION_COEFF, dt * 60.0f);
+                // Limitante inferior de Vx
+                if(fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD){
+                    Mario->speed.x = 0.0f;
+                    if(Mario->actualState == ACTION_WALKING){
+                        Mario->actualState = ACTION_IDLE;
+                    }
+                }
             }
-            else{
-                // Arrasto do ar
-                Mario->speed.x *= powf(AIR_FRICTION_COEFF, dt * 60.0f);
-            }
-            // Limitante inferior de Vx
-            if(fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD){
-                Mario->speed.x = 0.0f;
-                if(Mario->actualState == ACTION_WALKING){
-                    Mario->actualState = ACTION_IDLE;
+        }
+
+        // Vx no ar
+        else{
+            // Aplica aceleracao no ar
+            if(Mario->countAirTimeX < Mario->maxAirTimeX){
+                Mario->countAirTimeX += dt;
+
+                if(wantsToMoveLeft) {
+                    Mario->speed.x -= MARIO_AIR_ACCELERATION * dt;
+                }
+                if(wantsToMoveRight) {
+                    Mario->speed.x += MARIO_AIR_ACCELERATION * dt;
                 }
             }
 
+            // Limitando velocidade
+            if(Mario->speed.x > currentMoveSpeed){
+                Mario->speed.x = currentMoveSpeed;
+            }
+            if(Mario->speed.x < -currentMoveSpeed){
+                Mario->speed.x = -currentMoveSpeed;
+            }
+            
+            Mario->speed.x *= powf(AIR_FRICTION_COEFF, dt * 60.0f);
         }
     }
 
@@ -265,19 +288,21 @@ void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_fra
 
 // Função para inicializar a struct Mario
 void InitMario(Mario_t *Mario){
-    Mario->position = MARIO_START_POSITION; // Posição inicial
-    Mario->speed = (Vector2){0.0f, 0.0f}; // Inicia em repouso 
+    Mario->position = MARIO_START_POSITION; 
+    Mario->speed = (Vector2){0.0f, 0.0f}; 
     Mario->invincible = false;
     Mario->facingRight = true; 
-    Mario->powerUpState = STATE_SMALL; // Estado do mario (normal, super, fire)
-    Mario->actualState = ACTION_IDLE; // Parado
-    Mario->lives=3; // Contador de vidas
-    Mario->score=0; // Pontuação
-    Mario->coins=0; // Quant. de moedas
+    Mario->powerUpState = STATE_SMALL; 
+    Mario->actualState = ACTION_IDLE;
+    Mario->lives=3; 
+    Mario->score=0;
+    Mario->coins=0;
     Mario->canMove = true; 
     Mario->canJump = false; 
-    Mario->deadStarted = false; // flag som de morte
-    Mario->deadSoundTimer = 0.0f; // timer do som de morte
+    Mario->deadStarted = false; 
+    Mario->deadSoundTimer = 0.0f; 
+    Mario->maxAirTimeX = 0.3f; 
+    Mario->countAirTimeX = 0.0f; 
 
     // Renderizando os arquivos das sprites
     Mario->assets.superMarioSheet = LoadTexture("assets/textures/mario/supermario.png");
