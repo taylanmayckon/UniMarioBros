@@ -31,7 +31,7 @@
 #define MARIO_JUMP_STRENGTH 730.0f // Força inicial do pulo
 #define GRAVITY 1300.0f // Aceleração da gravidade (pixels/s^2)
 #define MAX_FALL_SPEED 650.0f // Velocidade máxima de queda
-#define GROUND_FRICTION_COEFF 0.95f // Coeficiente de atrito com o chão (quanto menor, maior o atrito)
+#define GROUND_FRICTION_COEFF 0.92f // Coeficiente de atrito com o chão (quanto menor, maior o atrito)
 #define AIR_FRICTION_COEFF 0.98f // Coeficiente de atrito no ar (2 anos de aero, se tá no ar tem arrasto)
 #define SLIDE_DECELERATION 450.0f // Desaceleração ao deslizar (pixels/s^2)
 #define STOP_SPEED_THRESHOLD 10.0f  // Abaixo desta Vy, considera-se parado
@@ -150,8 +150,27 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
     else{
         if(Mario->actualState == ACTION_CROUCH) Mario->actualState = ACTION_IDLE;  // Levanta se estava agachado
 
+        // Detecta se deve ativar o slide
+        bool isTryingToSlide = (wantsToMoveLeft && Mario->speed.x > STOP_SPEED_THRESHOLD) || (wantsToMoveRight && Mario->speed.x < -STOP_SPEED_THRESHOLD) ;
+
+        // Aciona slide
+        if(isTryingToSlide && Mario->canJump) Mario->actualState = ACTION_SLIDE;
+
+        // Trata o slide
+        if(Mario->actualState == ACTION_SLIDE){
+             // Desaceleracao por atrito
+            Mario->speed.x *= powf(GROUND_FRICTION_COEFF, dt * 60.0f);
+            // Limitante inferior de Vx
+            if(fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD){
+                Mario->speed.x = 0.0f;
+                if(Mario->actualState == ACTION_WALKING){
+                    Mario->actualState = ACTION_IDLE;
+                }
+            }
+        }
+
         // Movimento horizontal
-        if(wantsToMoveLeft && !wantsToMoveRight){ // Esquerda
+        else if(wantsToMoveLeft && !wantsToMoveRight){ // Esquerda
             Mario->speed.x = -currentMaxMoveSpeed;
             Mario->facingRight = false;
             if (Mario->actualState != ACTION_JUMPING) Mario->actualState = ACTION_WALKING; // Troca para anim de andar, caso nao esteja pulando
@@ -172,7 +191,7 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
                 // Arrasto do ar
                 Mario->speed.x *= powf(AIR_FRICTION_COEFF, dt * 60.0f);
             }
-            // Limitante inferior que para o slide
+            // Limitante inferior de Vx
             if(fabsf(Mario->speed.x) < STOP_SPEED_THRESHOLD){
                 Mario->speed.x = 0.0f;
                 if(Mario->actualState == ACTION_WALKING){
