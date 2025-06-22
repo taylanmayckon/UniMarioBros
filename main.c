@@ -57,7 +57,7 @@ int main(void) {
         ClearBackground(BLACK);
         BeginMode2D(gameCamera);
 
-        // Controle de Telas
+        //Controle de Telas
         switch (menu_state.currentScreen) {
             case LOADING_GAME:
                 LoadingGameScreen(&menu_state, &icons, &audio, &iconsinvisible);

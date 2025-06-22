@@ -71,6 +71,8 @@ typedef struct{
     bool facingRight; // Se esta olhando para a direita ou não (1: direita, 0: não)
     bool deadStarted; // Booleano para indicar se a animacao de morte ja comecou ou nao (para indicar quando comeca gravidade)
     bool deadSoundPlayed; // Indica se o som de morte tocou ou nao
+    float maxAirTimeX; // Tempo que pode controlar no ar
+    float countAirTimeX; // Contador de tempo no ar
     float deadSoundTimer; // Deixa o som de morte tocar todo antes de prosseguir
     MarioPowerUpStates_t powerUpState; // Estado atual do Mario (ex: normal, grande)
     MarioActionStates_t actualState; // Ação atual do Mario (parado, correndo, pulando...)
