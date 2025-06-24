@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "mario.h"
 #include "platform.h"
+#include "inimigos.h"
 
 void CheckMarioHitboxY(Mario_t *Mario, PhysPlatform_t *physPlatforms, bool *isOnGround, Sound bumpSound){
     for (int i = 0; i < physPlatCount; i++) {
@@ -58,5 +59,13 @@ void CheckMarioHitboxX(Mario_t *Mario, PhysPlatform_t *physPlatforms){
             
             MarioHitbox(Mario);
         }
+    }
+}
+
+
+// Funçao da colisao Mario-inimigo
+void CheckEnemyCollision(Mario_t *Mario, Rectangle enemyRect){
+    if(CheckCollisionRecs(Mario->hitbox, enemyRect)){
+        Mario->actualState = ACTION_DYING;
     }
 }

@@ -47,7 +47,7 @@ Goomba CriarGoomba(Vector2 posicaoInicial, float distanciaParaPatrulhar);
 void DesenharGoomba(Goomba goomba, Texture2D texturaInimigos);
 void AtualizarGoomba(Goomba *goomba, Rectangle paredes[], int numParedes);
 void ResolverColisoesCenarioGoomba(Goomba *goomba, Rectangle chaoPrincipal[], Rectangle plataforma[], int numPlataformas, int alturaTela); // Pouso no chão/plataformas
-void ProcessarColisaoGoombaComMario(Goomba *goomba, Rectangle marioRect, float *marioVelY); // Interação Goomba-Mario
+void ProcessarColisaoGoombaComMario(Goomba *goomba, Mario_t *Mario); // Interação Goomba-Mario
 
 // 2. Planta Carnívora
 typedef enum EstadoPlantaCarnivora{ //define o estado da planta, para mudança de sprites e temporizador
@@ -74,7 +74,7 @@ typedef struct PlantaCarnivora {
 PlantaCarnivora CriarPlantaCarnivora(Vector2 posicaoDoCano, int posicaoYTunel, int larguraTunel);
 void DesenharPlantaCarnivora(PlantaCarnivora planta, Texture2D texturaInimigos);
 void AtualizarPlantaCarnivora(PlantaCarnivora *planta);
-void ProcessarColisaoPlantaComMario(PlantaCarnivora *planta, Rectangle marioRect);
+void ProcessarColisaoPlantaComMario(PlantaCarnivora *planta, Mario_t *Mario);
 
 // 3. Tartaruga (Pequena)
 typedef enum EstadoTartaruga{
@@ -108,7 +108,7 @@ Tartaruga CriarTarturuga(Vector2 posicaoInicial, float distanciaParaPatrulhar);
 void DesenharTartaruga(Tartaruga tartaruga, Texture2D texturaInimigos);
 void AtualizarTartaruga(Tartaruga *tartaruga, Rectangle paredes[], int numParedes);
 void ResolverColisoesCenarioTartaruga(Tartaruga *tartaruga, Rectangle chaoPrincipal[], int numChao, Rectangle plataforma[], int numPlataforma);
-void ProcessarColisaoTartarugaComMario(Tartaruga *tartaruga, Rectangle marioRect, float *marioVelY);
+void ProcessarColisaoTartarugaComMario(Tartaruga *tartaruga, Mario_t *Mario);
 void ProcessarColisaoCascoRolandoComGoomba(Tartaruga *cascoRolando, Goomba *goomba);
 void InitInimigos(void);
 void UpdateInimigos(Rectangle *chao, Rectangle *plataforma, Rectangle *paredes, int numParedes,Mario_t *Mario);

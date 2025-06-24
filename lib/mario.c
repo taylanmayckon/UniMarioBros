@@ -27,7 +27,7 @@
 // Constantes de Física e Movimento 
 #define MARIO_WALK_SPEED 200.0f // Velocidade de caminhada base
 #define MARIO_RUN_SPEED 400.0f // Velocidade de corrida
-#define MARIO_JUMP_STRENGTH 730.0f // Força inicial do pulo
+#define MARIO_JUMP_STRENGTH 750.0f // Força inicial do pulo
 #define GRAVITY 1400.0f // Aceleração da gravidade (pixels/s^2)
 #define MAX_FALL_SPEED 650.0f // Velocidade máxima de queda
 #define WALK_GROUND_FRICTION_COEFF 0.94f // Coeficiente de atrito andando (quanto menor, maior o atrito)
@@ -43,14 +43,14 @@ void MarioHitbox(Mario_t *Mario){
     float width  = sprite->frameWidthCut * MARIO_SPRITE_SCALE; // Largura
     float height = sprite->frameHeightCut * MARIO_SPRITE_SCALE; // Altura
 
-    float x = Mario->position.x - (width / 2.0f); // X do retângulo
+    float x = Mario->position.x; // X do retângulo
     float y = Mario->position.y - height; // Y do retângulo
 
     Mario->hitbox = (Rectangle){
-        x + 12.0f,  // Ajuste X
+        x - (MARIO_SPRITE_SCALE * Mario->assets.activeSprite->frameWidthCut),  // Ajuste X
         y, // Ajuste Y
-        width - 24.0f, // Ajuste largura
-        height + 2.0f  // Ajuste altura 
+        width, // Ajuste largura
+        height  // Ajuste altura 
     };
 }
 
@@ -504,6 +504,9 @@ void DrawMario(Mario_t *Mario){
         Mario,
         Mario->assets.activeSprite->frameWidthCut * MARIO_SPRITE_SCALE,
         Mario->assets.activeSprite->frameHeightCut * MARIO_SPRITE_SCALE);
+
+    // Depuracao da hitbox
+    DrawRectangleLines(Mario->hitbox.x, Mario->hitbox.y, Mario->hitbox.width, Mario->hitbox.height, RED); 
 }
 
 
