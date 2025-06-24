@@ -18,6 +18,7 @@ typedef enum{
     ACTION_JUMPING, // Mario pulando
     ACTION_SLIDE, // Mario deslizando (parando de correr)
     ACTION_CROUCH, // Mario abaixado
+    ACTION_FLAG, // Descendo na bandeira
     ACTION_DYING, // Morrendo
     ACTION_DEAD_ALREADY, // Morto de fato
     ACTION_THROW, // Jogar bola de fogo
@@ -79,6 +80,23 @@ typedef struct{
     MarioAssets_t assets; // Todas as animações agrupadas
 } Mario_t;
 
+// Struct para as sprites da bandeira
+typedef struct{
+    Texture2D spriteSheet; // Local da textura da animação
+    Rectangle sourceRec; // Retangulo de origem (o corte da sprite)
+    Rectangle destRec; // Retangulo de destino: pos_x, pos_y, largura, altura
+    float frameWidthCut; // Largura do corte de cada frame
+    float frameHeightCut; // Altura do corte de cada frame
+} FlagSprite_t;
+
+// Struct para controlar a animação da bandeira
+typedef struct{
+    FlagSprite_t flag; // Sprite da bandeira que vai deslizar
+    FlagSprite_t pilar; // Sprite do pilar da bandeira
+    float speed_y; // Velocidade da parte deslizante
+    float flag_end; // Posicao para parar o slide da bandeira
+} Flag_t;
+
 // Protótipos de funções:
 void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCount, Sound bumpSound);
 void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_frame_pos_scale, float frameSpeed, float frameTimer, int currentFrame);
@@ -90,5 +108,9 @@ void DrawMario(Mario_t *Mario);
 void MarioHitbox(Mario_t *Mario);
 void UnloadMario(Mario_t *Mario);
 void ResetMario(Mario_t *Mario);
+// Funcoes para bandeira
+void InitFlag(Flag_t *Flag);
+void DrawFlag(Flag_t *Flag);
+void UpdateFlag(Flag_t *Flag, Mario_t *Mario, PhysPlatform_t *physPlatform);
 
 #endif

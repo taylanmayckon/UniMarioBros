@@ -3,8 +3,9 @@
 
 #include "raylib.h"
 #include "mario.h"
+#include "scene.h"
 
 void InitCamera(Camera2D *gameCamera, int width, int height);
-void MoveCamera(Camera2D *gameCamera, Mario_t Mario, int width, int height);
+void MoveCamera(Camera2D *gameCamera, Mario_t *Mario, GameScene *scene, int width, int height);
 
 #endif 
