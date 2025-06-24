@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include "inimigos.h"
 #include "mario.h"
+#include "collisions.h"
 
 #define GOOMBA_VEL_X 2
 #define GOOMBA_FRAMES_ANIMACAO 15
@@ -216,14 +217,14 @@ void ResolverColisoesCenarioGoomba(Goomba *goomba, Rectangle chaoPrincipal[], Re
     }
 }
 
-void ProcessarColisaoGoombaComMario(Goomba *goomba, Rectangle marioRect, float *marioVelY) {
+void ProcessarColisaoGoombaComMario(Goomba *goomba, Mario_t *Mario) {
     if (!goomba->vivo || goomba->estadoAtual != goombaAndando) {
         return;
     }
 
-    if (CheckCollisionRecs(goomba->rect, marioRect)) {
-        float peDoMario = marioRect.y + marioRect.height;
-        bool marioEstaCaindo = *marioVelY > 0.1f; 
+    if (CheckCollisionRecs(goomba->rect, Mario->hitbox)) {
+        float peDoMario = Mario->hitbox.y + Mario->hitbox.height;
+        bool marioEstaCaindo = Mario->speed.y > 0.1f; 
 
         bool colisaoDePiso = (marioEstaCaindo &&
                               peDoMario >= goomba->rect.y &&
@@ -241,11 +242,11 @@ void ProcessarColisaoGoombaComMario(Goomba *goomba, Rectangle marioRect, float *
                  goomba->rect.height = alturaAmassadoGoombaTela; 
             }
 
-            *marioVelY = alturaBounceMario; 
+            Mario->speed.y = alturaBounceMario; 
             // AQUI VOCE TAMBEM PODE ADICIONAR UM SOM DE PISAO
         } else {
-            // --- LÓGICA DE COLISÃO LATERAL OU POR BAIXO (NÃO PISÃO)
-            // Aqui chamaria a funcao do Mario para levar dano.
+            // Colisao no Eixo X
+            CheckGoombaCollisionX(Mario, *goomba);
         }
     }
 }
@@ -347,7 +348,7 @@ void AtualizarPlantaCarnivora(PlantaCarnivora *planta){
     }
 }
 
-void ProcessarColisaoPlantaComMario(PlantaCarnivora *planta, Rectangle marioRect) {
+void ProcessarColisaoPlantaComMario(PlantaCarnivora *planta, Mario_t *Mario) {
     // A planta só causa dano se estiver viva e nao escondida (fora do cano)
     if (!planta->viva || planta->estadoAtual == plantaEscondida){
         return; 
@@ -355,13 +356,7 @@ void ProcessarColisaoPlantaComMario(PlantaCarnivora *planta, Rectangle marioRect
     }
 
     // Verifica se há colisão entre o retângulo da planta e o do Mario
-    if (CheckCollisionRecs(planta->rect, marioRect)) {
-        // Colisão detectada com a planta
-        // AQUI VOCÊ CHAMARIA A FUNÇÃO PARA O MARIO LEVAR DANO
-        // Exemplo hipotético, nao sei se da para fazer assim
-        // (essa função estaria no código do Mario):
-        // MarioLevarDano(&mario);
-    }
+    CheckPlantCollision(Mario, *planta);
 }
 
 Tartaruga CriarTarturuga(Vector2 posicaoInicial, float distanciaParaPatrulhar){
@@ -604,21 +599,21 @@ void ResolverColisoesCenarioTartaruga(Tartaruga *tartaruga, Rectangle chaoPrinci
         }
 }
 
-void ProcessarColisaoTartarugaComMario(Tartaruga *tartaruga, Rectangle marioRect, float *marioVelY){    
+void ProcessarColisaoTartarugaComMario(Tartaruga *tartaruga, Mario_t *Mario){    
     if(!tartaruga->viva){
         return;
     }
 
-    if(CheckCollisionRecs(tartaruga->rect, marioRect)){
+    if(CheckCollisionRecs(tartaruga->rect, Mario->hitbox)){
 
-        float peDoMario = marioRect.y + marioRect.height;
-        bool marioEstaCaindo = *marioVelY > 0.1f;
+        float peDoMario = Mario->hitbox.y + Mario->hitbox.height;
+        bool marioEstaCaindo = Mario->speed.y > 0.1f;
 
         // Condição de pisão: Mario está caindo E Mario está acima ou no topo da tartaruga
         bool colisaoDePiso = (marioEstaCaindo && peDoMario >= tartaruga->rect.y);
         
         if (colisaoDePiso) {
-            *marioVelY = alturaBounceMario; // Mario quica
+            Mario->speed.y = alturaBounceMario; // Mario quica
 
             if (tartaruga->estadoAtual == tartarugaAndando) {
                 tartaruga->estadoAtual = tartarugaCascoParado;
@@ -632,7 +627,7 @@ void ProcessarColisaoTartarugaComMario(Tartaruga *tartaruga, Rectangle marioRect
             }
             else if (tartaruga->estadoAtual == tartarugaCascoParado) {
                 // Mario pisou no CASCO PARADO: Chutá-lo para a direita ou esquerda
-                float marioCentroXRelativo = (marioRect.x + marioRect.width / 2.0f) - (tartaruga->rect.x);
+                float marioCentroXRelativo = (Mario->hitbox.x + Mario->hitbox.width / 2.0f) - (tartaruga->rect.x);
                 float meioDoCasco = tartaruga->rect.width / 2.0f;
 
                 if (marioCentroXRelativo < meioDoCasco) { // Mario pisou na metade ESQUERDA
@@ -647,12 +642,12 @@ void ProcessarColisaoTartarugaComMario(Tartaruga *tartaruga, Rectangle marioRect
         } else {
             // Colisão LATERAL OU POR BAIXO (NÃO PISÃO)
             if (tartaruga->estadoAtual == tartarugaAndando) {
-             //COLISAO LATERAL/POR BAIXO COM TARTARUGA EM PE! Mario deve levar dano
+                CheckTartarugaCollisionX(Mario, *tartaruga);
             }
             else if (tartaruga->estadoAtual == tartarugaCascoParado) {
                 // COLISÃO LATERAL COM CASCO PARADO: Mario empurra o casco
                 tartaruga->estadoAtual = tartarugaCascoRolando;
-                if (marioRect.x + marioRect.width / 2 < tartaruga->rect.x + tartaruga->rect.width / 2) {
+                if (Mario->hitbox.x + Mario->hitbox.width / 2 < tartaruga->rect.x + tartaruga->rect.width / 2) {
                     tartaruga->velocidadeRolando.x = TARTARUGA_VEL_CASCO_ROLANDO; // Empurra para a direita
                 } else {
                     tartaruga->velocidadeRolando.x = -TARTARUGA_VEL_CASCO_ROLANDO; // Empurra para a esquerda
@@ -709,14 +704,14 @@ void UpdateInimigos(Rectangle *chao, Rectangle *plataforma, Rectangle *paredes, 
         if (listaDeGoombas[i].vivo) {
             AtualizarGoomba(&listaDeGoombas[i], paredes, numParedes);
             ResolverColisoesCenarioGoomba(&listaDeGoombas[i], chao, plataforma, 4, 600);
-            ProcessarColisaoGoombaComMario(&listaDeGoombas[i], Mario->hitbox, &Mario->speed.y);
+            ProcessarColisaoGoombaComMario(&listaDeGoombas[i], Mario);
         }
     }
 
     for (int i = 0; i < NUM_PLANTAS; i++) {
         if (listaDePlantas[i].viva) {
             AtualizarPlantaCarnivora(&listaDePlantas[i]);
-            ProcessarColisaoPlantaComMario(&listaDePlantas[i], Mario->hitbox);
+            ProcessarColisaoPlantaComMario(&listaDePlantas[i], Mario);
         }
     }
 
@@ -724,7 +719,7 @@ void UpdateInimigos(Rectangle *chao, Rectangle *plataforma, Rectangle *paredes, 
             if(listaDeTartarugas[i].viva){
                 ResolverColisoesCenarioTartaruga(&listaDeTartarugas[i],chao,4,plataforma,4);
                 AtualizarTartaruga(&listaDeTartarugas[i], paredes, 2);
-                ProcessarColisaoTartarugaComMario(&listaDeTartarugas[i],Mario->hitbox,&Mario->speed.y);
+                ProcessarColisaoTartarugaComMario(&listaDeTartarugas[i], Mario);
                 if(listaDeTartarugas[i].estadoAtual == tartarugaCascoRolando){
                     for(int j = 0; j < NUM_GOOMBA; j++){
                         if(listaDeGoombas[j].vivo && listaDeGoombas[j].estadoAtual == goombaAndando){

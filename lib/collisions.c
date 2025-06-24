@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "mario.h"
 #include "platform.h"
+#include "inimigos.h"
 
 void CheckMarioHitboxY(Mario_t *Mario, PhysPlatform_t *physPlatforms, bool *isOnGround, Sound bumpSound){
     for (int i = 0; i < physPlatCount; i++) {
@@ -58,5 +59,27 @@ void CheckMarioHitboxX(Mario_t *Mario, PhysPlatform_t *physPlatforms){
             
             MarioHitbox(Mario);
         }
+    }
+}
+
+
+// Funçao da colisao Mario-Goomba no eixo X
+void CheckGoombaCollisionX(Mario_t *Mario, Goomba goomba){
+    if(CheckCollisionRecs(Mario->hitbox, goomba.rect)){
+        Mario->actualState = ACTION_DYING;
+    }
+}
+
+// Verifica colisao com as plantas
+void CheckPlantCollision(Mario_t *Mario, PlantaCarnivora planta){
+    if(CheckCollisionRecs(Mario->hitbox, planta.rect)){
+        Mario->actualState = ACTION_DYING;
+    }
+}
+
+// Colisao com a tartaruga (só aciona quando está fora do casco)
+void CheckTartarugaCollisionX(Mario_t *Mario, Tartaruga tartaruga){
+    if(CheckCollisionRecs(Mario->hitbox, tartaruga.rect)){
+        Mario->actualState = ACTION_DYING;
     }
 }
