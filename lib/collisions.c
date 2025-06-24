@@ -63,23 +63,9 @@ void CheckMarioHitboxX(Mario_t *Mario, PhysPlatform_t *physPlatforms){
 }
 
 
-// Funçao da colisao Mario-Goomba no eixo X
-void CheckGoombaCollisionX(Mario_t *Mario, Goomba goomba){
-    if(CheckCollisionRecs(Mario->hitbox, goomba.rect)){
-        Mario->actualState = ACTION_DYING;
-    }
-}
-
-// Verifica colisao com as plantas
-void CheckPlantCollision(Mario_t *Mario, PlantaCarnivora planta){
-    if(CheckCollisionRecs(Mario->hitbox, planta.rect)){
-        Mario->actualState = ACTION_DYING;
-    }
-}
-
-// Colisao com a tartaruga (só aciona quando está fora do casco)
-void CheckTartarugaCollisionX(Mario_t *Mario, Tartaruga tartaruga){
-    if(CheckCollisionRecs(Mario->hitbox, tartaruga.rect)){
+// Funçao da colisao Mario-inimigo
+void CheckEnemyCollision(Mario_t *Mario, Rectangle enemyRect){
+    if(CheckCollisionRecs(Mario->hitbox, enemyRect)){
         Mario->actualState = ACTION_DYING;
     }
 }

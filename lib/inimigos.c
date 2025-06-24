@@ -246,7 +246,7 @@ void ProcessarColisaoGoombaComMario(Goomba *goomba, Mario_t *Mario) {
             // AQUI VOCE TAMBEM PODE ADICIONAR UM SOM DE PISAO
         } else {
             // Colisao no Eixo X
-            CheckGoombaCollisionX(Mario, *goomba);
+            CheckEnemyCollision(Mario, goomba->rect);
         }
     }
 }
@@ -356,7 +356,7 @@ void ProcessarColisaoPlantaComMario(PlantaCarnivora *planta, Mario_t *Mario) {
     }
 
     // Verifica se há colisão entre o retângulo da planta e o do Mario
-    CheckPlantCollision(Mario, *planta);
+    CheckEnemyCollision(Mario, planta->rect);
 }
 
 Tartaruga CriarTarturuga(Vector2 posicaoInicial, float distanciaParaPatrulhar){
@@ -600,7 +600,7 @@ void ResolverColisoesCenarioTartaruga(Tartaruga *tartaruga, Rectangle chaoPrinci
 }
 
 void ProcessarColisaoTartarugaComMario(Tartaruga *tartaruga, Mario_t *Mario){    
-    if(!tartaruga->viva){
+    if(!tartaruga->viva || Mario->actualState==ACTION_DYING || Mario->actualState==ACTION_DEAD_ALREADY){
         return;
     }
 
@@ -642,7 +642,7 @@ void ProcessarColisaoTartarugaComMario(Tartaruga *tartaruga, Mario_t *Mario){
         } else {
             // Colisão LATERAL OU POR BAIXO (NÃO PISÃO)
             if (tartaruga->estadoAtual == tartarugaAndando) {
-                CheckTartarugaCollisionX(Mario, *tartaruga);
+                CheckEnemyCollision(Mario, tartaruga->rect);
             }
             else if (tartaruga->estadoAtual == tartarugaCascoParado) {
                 // COLISÃO LATERAL COM CASCO PARADO: Mario empurra o casco
