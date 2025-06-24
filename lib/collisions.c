@@ -69,3 +69,18 @@ void CheckEnemyCollision(Mario_t *Mario, Rectangle enemyRect){
         Mario->actualState = ACTION_DYING;
     }
 }
+
+//  Checa se chegou no chao da bandeira
+void CheckFlagEndCollision(Mario_t *Mario, PhysPlatform_t *physPlatforms){
+    Mario->position.y += 8.0f;
+    for (int i = 0; i < physPlatCount; i++) {
+        PhysPlatform_t *p = &physPlatforms[i];
+        Rectangle pRect = p->rect;
+
+        if (CheckCollisionRecs(Mario->hitbox, pRect)) {
+            // Quando aterrissa no bloco
+            Mario->position.y = pRect.y; // Coloca Mario exatamente em cima
+        }
+        MarioHitbox(Mario); // Atualiza novamente a hibox
+    }
+}

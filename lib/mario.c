@@ -18,11 +18,20 @@
 #define FIRE_MARIO_FRAME_WIDHT_CUT 16.0f
 #define FIRE_MARIO_FRAME_HEIGHT_CUT 31.0f
 
+// -> DIMENSOES DAS SPRITES DA FLAG
+#define FLAG_FRAME_WIDTH_CUT 16.0f
+#define FLAG_FRAME_HEIGHT_CUT 16.0f
+#define PILAR_FRAME_WIDTH_CUT 16.0f
+#define PILAR_FRAME_HEIGHT_CUT 96.0f
+
 // Escala que vai ser desenhado na tela 
 #define MARIO_SPRITE_SCALE 3.0f
+#define FLAG_SPRITE_SCALE 3.0f
+#define PILAR_SPRITE_SCALE 3.0f
 
 // Posicao inicial do mario
-#define MARIO_START_POSITION (Vector2){260.0f, 300.0f}
+// #define MARIO_START_POSITION (Vector2){260.0f, 100.0f}
+#define MARIO_START_POSITION (Vector2){3000.0f, 0.0f}
 
 // Constantes de Física e Movimento 
 #define MARIO_WALK_SPEED 200.0f // Velocidade de caminhada base
@@ -509,6 +518,80 @@ void DrawMario(Mario_t *Mario){
     DrawRectangleLines(Mario->hitbox.x, Mario->hitbox.y, Mario->hitbox.width, Mario->hitbox.height, RED); 
 }
 
+
+// Função que inicializa a bandeira de fim de jogo
+void InitFlag(Flag_t *Flag){
+    // Iniciando sprite do pilar da bandeira
+    Flag->pilar.spriteSheet = (Texture2D)LoadTexture("assets/textures/items/flag_pilar.png");
+    Flag->pilar.sourceRec = (Rectangle){0.0f, 0.0f, PILAR_FRAME_WIDTH_CUT, PILAR_FRAME_HEIGHT_CUT};
+    Flag->pilar.destRec = (Rectangle){3150.0f, 99.0f, PILAR_FRAME_WIDTH_CUT*PILAR_SPRITE_SCALE, PILAR_FRAME_HEIGHT_CUT*PILAR_SPRITE_SCALE};
+    Flag->pilar.frameWidthCut = Flag->pilar.sourceRec.width;
+    Flag->pilar.frameHeightCut = Flag->pilar.sourceRec.height;
+
+    // Iniciando sprite da bandeira
+    Flag->flag.spriteSheet = (Texture2D)LoadTexture("assets/textures/items/flag_flag.png");
+    Flag->flag.sourceRec = (Rectangle){0.0f, 0.0f, FLAG_FRAME_WIDTH_CUT, FLAG_FRAME_HEIGHT_CUT};
+    Flag->flag.destRec = (Rectangle){3150.0f, 99.0f, FLAG_FRAME_WIDTH_CUT*FLAG_SPRITE_SCALE, FLAG_FRAME_HEIGHT_CUT*FLAG_SPRITE_SCALE};
+    Flag->flag.frameWidthCut = Flag->flag.sourceRec.width;
+    Flag->flag.frameHeightCut = Flag->flag.sourceRec.height;
+
+    // Offset pra corrigir posicao da bandeira
+    Flag->flag.destRec.x -= 25.0f;
+    Flag->flag.destRec.y += 28.0f;
+    Flag->speed_y = 4.0f; // Velocidade da parte deslizante
+
+    // Ajustado no modo "força bruta"
+    Flag->flag_end = Flag->flag.destRec.y - 77.0f + PILAR_FRAME_HEIGHT_CUT*PILAR_SPRITE_SCALE;
+}
+
+// Funçao que atualiza a bandeira
+void DrawFlag(Flag_t *Flag){
+    FlagSprite_t pilar = Flag->pilar;
+    FlagSprite_t flag = Flag->flag;
+
+    Vector2 origin = {0, 0};
+
+    // Desenha pilar
+    DrawTexturePro(
+        pilar.spriteSheet,
+        pilar.sourceRec,
+        pilar.destRec,
+        origin,
+        0.0f,
+        WHITE
+    );
+
+    // Desenha a bandeira
+    DrawTexturePro(
+        flag.spriteSheet,
+        flag.sourceRec,
+        flag.destRec,
+        origin,
+        0.0f,
+        WHITE
+    );
+
+    DrawRectangleLinesEx(pilar.destRec, 2, RED);
+}
+
+void UpdateFlag(Flag_t *Flag, Mario_t *Mario, PhysPlatform_t *physPlatform){
+    // Logica de fim de jogo
+    if(CheckCollisionRecs(Flag->pilar.destRec, Mario->hitbox) && (Flag->flag.destRec.y < Flag->flag_end)){
+        // Mario->actualState = ACTION_FLAG;
+        Mario->canMove = false;
+        Flag->flag.destRec.y += Flag->speed_y;
+        
+        // Checa se o Mario chegou no chao enquanto descia
+        CheckFlagEndCollision(Mario, physPlatform);
+        
+        if(Flag->flag.destRec.y > Flag->flag_end){
+            Flag->flag.destRec.y = Flag->flag_end;
+            Mario->canMove = true;
+            Mario->actualState = ACTION_IDLE;
+        }
+    }
+    DrawFlag(Flag);
+}
 
 // Descarrega os assets do Mario
 void UnloadMario(Mario_t *Mario){

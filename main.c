@@ -12,6 +12,7 @@
 
 GameScene scene;
 Mario_t Mario;
+Flag_t Flag;
 Camera2D gameCamera;
 PhysPlatform_t physPlatforms[MAX_PHYS_PLATFORMS];
 Sound bumpSound;
@@ -35,6 +36,7 @@ int main(void) {
     InitIcons(&icons);
     InitIconsInvisible(&iconsinvisible, &icons);
     InitAudio(&audio);
+    InitFlag(&Flag);
 
     scene = CreateGameScene("assets/textures/background.png");
 
@@ -59,7 +61,7 @@ int main(void) {
     while (!WindowShouldClose()) {
         UpdateMusicStream(audio.mario_menu);
 
-        MoveCamera(&gameCamera, Mario, SCREEN_WIDTH, SCREEN_HEIGHT);
+        MoveCamera(&gameCamera, &Mario, &scene, SCREEN_WIDTH, SCREEN_HEIGHT);
 
         BeginDrawing();
         ClearBackground(BLACK);
@@ -83,11 +85,14 @@ int main(void) {
         //         LoadingLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
         //         break;
         //     case LEVEL1:
+                
                 UpdateMario(&Mario, physPlatforms, physPlatCount, bumpSound);
                 UpdateInimigos(chao, plataforma, paredes, 2, &Mario); // <-- Atualiza inimigos
                 UpdatePlatforms(physPlatforms);
                 UpdateCoins(&Mario);
                 Level1Screen(&menu_state, &icons, &audio, &iconsinvisible);
+                UpdateFlag(&Flag, &Mario, physPlatforms);
+                
         //         break;
         //     case OPTIONS_LEVEL:
         //         OptionsLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
