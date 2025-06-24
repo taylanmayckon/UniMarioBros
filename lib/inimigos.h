@@ -1,8 +1,13 @@
 #include <raylib.h>
 #include <stdbool.h>
+#include "mario.h"
 
 #ifndef INIMIGOS_H
 #define INIMIGOS_H
+
+#define NUM_GOOMBA 5
+#define NUM_PLANTAS 2
+#define NUM_TARTARUGAS 2
 
 #define larguraGoombaTela 40 //multiplo j de 16
 #define alturaAndandoGoombaTela 40 //multiplo j de 16
@@ -41,7 +46,7 @@ typedef struct Goomba {
 Goomba CriarGoomba(Vector2 posicaoInicial, float distanciaParaPatrulhar);
 void DesenharGoomba(Goomba goomba, Texture2D texturaInimigos);
 void AtualizarGoomba(Goomba *goomba, Rectangle paredes[], int numParedes);
-void ResolverColisoesCenarioGoomba(Goomba *goomba, Rectangle chaoPrincipal, Rectangle plataforma, int alturaTela); // Pouso no chão/plataformas
+void ResolverColisoesCenarioGoomba(Goomba *goomba, Rectangle chaoPrincipal[], Rectangle plataforma[], int numPlataformas, int alturaTela); // Pouso no chão/plataformas
 void ProcessarColisaoGoombaComMario(Goomba *goomba, Rectangle marioRect, float *marioVelY); // Interação Goomba-Mario
 
 // 2. Planta Carnívora
@@ -102,7 +107,11 @@ typedef struct Tartaruga {
 Tartaruga CriarTarturuga(Vector2 posicaoInicial, float distanciaParaPatrulhar);
 void DesenharTartaruga(Tartaruga tartaruga, Texture2D texturaInimigos);
 void AtualizarTartaruga(Tartaruga *tartaruga, Rectangle paredes[], int numParedes);
-void ResolverColisoesCenarioTartaruga(Tartaruga *tartaruga, Rectangle chaoPrincipal, Rectangle plataforma);
+void ResolverColisoesCenarioTartaruga(Tartaruga *tartaruga, Rectangle chaoPrincipal[], int numChao, Rectangle plataforma[], int numPlataforma);
 void ProcessarColisaoTartarugaComMario(Tartaruga *tartaruga, Rectangle marioRect, float *marioVelY);
 void ProcessarColisaoCascoRolandoComGoomba(Tartaruga *cascoRolando, Goomba *goomba);
+void InitInimigos(void);
+void UpdateInimigos(Rectangle *chao, Rectangle *plataforma, Rectangle *paredes, int numParedes,Mario_t *Mario);
+void DrawInimigos(void);
+void UnloadInimigos(void);
 #endif //INIMIGOS_H

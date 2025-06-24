@@ -7,6 +7,7 @@
 #include "scene.h"
 #include "platform.h"
 #include "coin.h"
+#include "inimigos.h"
 
 extern GameScene scene;
 extern Mario_t Mario;
@@ -15,6 +16,10 @@ extern PhysPlatform_t physPlatforms[MAX_PHYS_PLATFORMS];
 extern Sound bumpSound;
 extern Sound jumpSound;
 extern Texture2D coinAtlas;
+
+
+
+ 
 
 void InitMenuState(MenuState *g) {
     g->framecounter1 = 0;
@@ -71,6 +76,9 @@ void InitIcons(Icons *a) {
     a->quit_buttom = LoadTexture("assets/textures/icons/quit_bottom.png");
     a->quit_buttom_pressed = LoadTexture("assets/textures/icons/quit_bottom_pressed.png");
     a->block1 = LoadTexture("assets/textures/blocks/block1.png");
+    a->block3 = LoadTexture("assets/textures/blocks/block3.png");
+    a->block5 = LoadTexture("assets/textures/blocks/block5.png");
+    a->tunnels = LoadTexture("assets/textures/blocks/tunnels.png");
 }
 
 void InitIconsInvisible(IconsInvisible *b, Icons *a) {
@@ -110,16 +118,16 @@ void LoadingGameScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
     DrawTexture(a->trivial_games, GetScreenWidth()/2 - a->trivial_games.width/2, -40, WHITE);
     DrawRectangleLines((GetScreenWidth()/2 - 500/2)-4, 396, 509, 40, WHITE);
     
-    if (g->framecounter1 < 100) {
+    if (g->framecounter1 < 10) {
         DrawRectangle(GetScreenWidth()/2 - 500/2, 400, 0, 0, WHITE);
-    } else if (g->framecounter1 < 200) {
+    } else if (g->framecounter1 < 20) {
         DrawRectangle(GetScreenWidth()/2 - 500/2, 400, 50, 30, WHITE);
-    } else if (g->framecounter1 < 300) {
+    } else if (g->framecounter1 < 30) {
         DrawRectangle(GetScreenWidth()/2 - 500/2, 400, 150, 30, WHITE);
-    } else if (g->framecounter1 < 400) {
+    } else if (g->framecounter1 < 40) {
         DrawRectangle(GetScreenWidth()/2 - 500/2, 400, 450, 30, WHITE);
         PlayMusicStream(au->mario_menu);
-    } else if (g->framecounter1 < 500) {
+    } else if (g->framecounter1 < 50) {
         DrawRectangle(GetScreenWidth()/2 - 500/2, 400, 500, 30, WHITE);
     } else {
         g->currentScreen = MENU;
@@ -375,11 +383,14 @@ void Level1Screen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
     if (IsKeyPressed(KEY_P) || IsKeyPressed(KEY_ESCAPE)) {
         g->currentScreen = OPTIONS_LEVEL;
     }
-
     DrawGameScene(scene);
     DrawCoins();
-    DrawBlocks(physPlatforms, a->block1);
+    DrawInimigos();
+    DrawBlocks(physPlatforms, a->block1, a->block3, a->tunnels, a->block5);
     DrawMario(&Mario);
+
+
+
 }
 
 void OptionsLevelScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
@@ -509,6 +520,10 @@ void UnloadIcons(Icons *a) {
     UnloadTexture(a->quit_buttom);
     UnloadTexture(a->quit_buttom_pressed);
     UnloadTexture(a->block1);
+    UnloadTexture(a->block3);
+    UnloadTexture(a->block5);
+    UnloadTexture(a->tunnels);
+    UnloadInimigos();
 }
 
 void UnloadAudio(Audio *au) {

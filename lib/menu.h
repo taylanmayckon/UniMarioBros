@@ -51,6 +51,9 @@ typedef struct {
     Texture2D quit_buttom;
     Texture2D quit_buttom_pressed;
     Texture2D block1;
+    Texture2D block3;
+    Texture2D block5;
+    Texture2D tunnels;
 } Icons;
 
 // Struct dos Botões (retângulos invisíveis)
