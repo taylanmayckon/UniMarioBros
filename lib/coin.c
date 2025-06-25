@@ -40,8 +40,8 @@ void UpdateCoins(Mario_t *Mario) {
 
         if (CheckCollisionRecs(Mario->hitbox, coinRect)) { // Se colidiu
             c->active = false; // Desativa moeda
-            Mario->coins++;    // Incrementa moedas
-            Mario->score += 100; // Pontuação
+            Mario->stats.coins++;    // Incrementa moedas
+            Mario->stats.score += 100; // Pontuação
         }
 
         c->frameCounter++; // Incrementa contador

@@ -15,7 +15,7 @@ void CheckMarioHitboxY(Mario_t *Mario, PhysPlatform_t *physPlatforms, bool *isOn
                 Mario->position.y = pRect.y; // Coloca Mario exatamente em cima
                 Mario->speed.y = 0;
                 *isOnGround = true;
-                Mario->canJump = true;
+                Mario->stats.canJump = true;
 
                 if (Mario->actualState == ACTION_JUMPING) {
                     Mario->actualState = (fabsf(Mario->speed.x) > 0) ? ACTION_WALKING : ACTION_IDLE;

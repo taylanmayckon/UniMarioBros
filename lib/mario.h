@@ -19,6 +19,7 @@ typedef enum{
     ACTION_SLIDE, // Mario deslizando (parando de correr)
     ACTION_CROUCH, // Mario abaixado
     ACTION_FLAG, // Descendo na bandeira
+    ACTION_PIPE, // Entrando no cano
     ACTION_DYING, // Morrendo
     ACTION_DEAD_ALREADY, // Morto de fato
     ACTION_THROW, // Jogar bola de fogo
@@ -57,12 +58,8 @@ typedef struct{
     Sound deathSound;
 } MarioAssets_t;
 
-
-// Struct principal do Mario
+// Status gerais do Mario
 typedef struct{
-    Vector2 position; // Posição atual do Mario (x, y)
-    Vector2 speed; // Velocidade atual do Mario (x, y)
-    Rectangle hitbox; // Caixa de colisão do Mario
     int lives; // Contador de vidas
     int score; // Pontuação
     int coins; // Quant. de moedas
@@ -70,11 +67,30 @@ typedef struct{
     bool canMove; // Booleano para indicar se pode se mover ou não 
     bool canJump; // Booleano para indicar que pode pular
     bool facingRight; // Se esta olhando para a direita ou não (1: direita, 0: não)
-    bool deadStarted; // Booleano para indicar se a animacao de morte ja comecou ou nao (para indicar quando comeca gravidade)
-    bool deadSoundPlayed; // Indica se o som de morte tocou ou nao
+    bool isOnCave; // Se o Mario esta dentro da caverna ou nao
+} MarioStats_t;
+
+// Variaveis para limitar o controle em ar
+typedef struct{
     float maxAirTimeX; // Tempo que pode controlar no ar
     float countAirTimeX; // Contador de tempo no ar
+} MarioAirControl_t;
+
+// Variaveis que controlam a morte do Mario
+typedef struct{
+    bool deadStarted; // Booleano para indicar se a animacao de morte ja comecou ou nao (para indicar quando comeca gravidade)
+    bool deadSoundPlayed; // Indica se o som de morte tocou ou nao
     float deadSoundTimer; // Deixa o som de morte tocar todo antes de prosseguir
+} MarioDeadControl_t;
+
+// Struct principal do Mario
+typedef struct{
+    Vector2 position; // Posição atual do Mario (x, y)
+    Vector2 speed; // Velocidade atual do Mario (x, y)
+    Rectangle hitbox; // Caixa de colisão do Mario
+    MarioStats_t stats; // Status gerais do Mario
+    MarioAirControl_t air_control; // Variaveis de controle no ar para o Mario
+    MarioDeadControl_t dead_control; // Variaveis de controle da morte do Mario
     MarioPowerUpStates_t powerUpState; // Estado atual do Mario (ex: normal, grande)
     MarioActionStates_t actualState; // Ação atual do Mario (parado, correndo, pulando...)
     MarioAssets_t assets; // Todas as animações agrupadas
@@ -93,6 +109,7 @@ typedef struct{
 typedef struct{
     FlagSprite_t flag; // Sprite da bandeira que vai deslizar
     FlagSprite_t pilar; // Sprite do pilar da bandeira
+    Rectangle hitbox; // Caixa de colisao do pilar
     float speed_y; // Velocidade da parte deslizante
     float flag_end; // Posicao para parar o slide da bandeira
 } Flag_t;

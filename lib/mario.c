@@ -65,18 +65,27 @@ void MarioHitbox(Mario_t *Mario){
 
 // Funcao para resetar o Mario para as configurações de fábrica
 void ResetMario(Mario_t *Mario){
+    MarioStats_t stats_reset;
+    MarioDeadControl_t dead_reset;
+
+    stats_reset.canJump = true;
+    stats_reset.canMove = true;
+    stats_reset.facingRight = true;
+    stats_reset.invincible = false;
+    stats_reset.isOnCave = false;
+
+    dead_reset.deadStarted = false;
+    dead_reset.deadSoundTimer = 0.0f;
+    dead_reset.deadSoundPlayed = false;
+
+    
     Mario->position = MARIO_START_POSITION; 
     Mario->speed = (Vector2){0.0f, 0.0f}; 
-    Mario->invincible = false; 
-    Mario->facingRight = true; 
     Mario->powerUpState = STATE_SMALL; 
     Mario->actualState = ACTION_IDLE; 
-    Mario->canMove = true; 
-    Mario->canJump = false; 
-    Mario->deadStarted = false; 
-    Mario->deadSoundTimer = 0.0f; 
-    Mario->deadSoundPlayed = false; 
-    Mario->countAirTimeX = 0.0f;
+    Mario->stats = stats_reset;
+    Mario->dead_control = dead_reset;
+    Mario->air_control.countAirTimeX = 0.0f;
 }
 
 
@@ -101,16 +110,16 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
     if(Mario->position.y > 700.0f){ // O fim da tela + uns quebrados
         Mario->actualState = ACTION_DYING; // Se o Mario caiu, ele está no processo de morrer
         
-        if (!Mario->deadSoundPlayed) {
+        if (!Mario->dead_control.deadSoundPlayed) {
             PlaySound(Mario->assets.deathSound);
-            Mario->deadSoundPlayed = true;
-            Mario->deadSoundTimer = 0.0f;
+            Mario->dead_control.deadSoundPlayed = true;
+            Mario->dead_control.deadSoundTimer = 0.0f;
         }
         
-        Mario->deadSoundTimer += GetFrameTime();
+        Mario->dead_control.deadSoundTimer += GetFrameTime();
 
-        if (Mario->deadSoundTimer >= 4.0f) {
-            Mario->lives--;
+        if (Mario->dead_control.deadSoundTimer >= 4.0f) {
+            Mario->stats.lives--;
             Mario->actualState = ACTION_DEAD_ALREADY; // AGORA sim, ele está pronto para o reset
         }
         return; 
@@ -118,21 +127,21 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
 
     // Sinaliza que tem que travar o movimento na morte
     if(Mario->actualState == ACTION_DYING){
-        if(!Mario->deadStarted){
+        if(!Mario->dead_control.deadStarted){
             Mario->speed.y = -MARIO_JUMP_STRENGTH; // Aplica o impulso inicial da morte
-            Mario->deadStarted = true; // Sinaliza que comecou animacao de morte agora
+            Mario->dead_control.deadStarted = true; // Sinaliza que comecou animacao de morte agora
             // Verifica se pode tocar o som e sinaliza que ja tocou o mesmo
-            if(!Mario->deadSoundPlayed){
+            if(!Mario->dead_control.deadSoundPlayed){
                 PlaySound(Mario->assets.deathSound);
-                Mario->deadSoundPlayed = true;
-                Mario->deadSoundTimer = 0.0f;
+                Mario->dead_control.deadSoundPlayed = true;
+                Mario->dead_control.deadSoundTimer = 0.0f;
             }
         }
-        Mario->canMove = false;
+        Mario->stats.canMove = false;
     }
 
     // Isso é pra processar quando pegar cogumelo, morrer, pegar bandeira...
-    if(!Mario->canMove){
+    if(!Mario->stats.canMove){
         Mario->speed.x = 0; // Para o slide
         return;
     }
@@ -151,16 +160,16 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
 
     // -> Logica de estado e Velocidade Horizontal (Vx)
     // Agachar (para Super e Fire Mario, no chao)
-    if(wantsToCrouch && Mario->powerUpState != STATE_SMALL && Mario->actualState!=ACTION_JUMPING && Mario->canJump){
+    if(wantsToCrouch && Mario->powerUpState != STATE_SMALL && Mario->actualState!=ACTION_JUMPING && Mario->stats.canJump){
         Mario->actualState = ACTION_CROUCH;
         Mario->speed.x = 0;
     }
     // Atualiza Vx, caso nao agache
     else{
         // Vx no chao
-        if(Mario->canJump){
+        if(Mario->stats.canJump){
             // Reseta o timer de controle no ar
-            Mario->countAirTimeX = 0.0f;
+            Mario->air_control.countAirTimeX = 0.0f;
 
             if(Mario->actualState == ACTION_CROUCH) Mario->actualState = ACTION_IDLE;  // Levanta se estava agachado
 
@@ -168,7 +177,7 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
             bool isTryingToSlide = (wantsToMoveLeft && Mario->speed.x > STOP_SPEED_THRESHOLD) || (wantsToMoveRight && Mario->speed.x < -STOP_SPEED_THRESHOLD) ;
 
             // Aciona slide
-            if(isTryingToSlide && Mario->canJump) Mario->actualState = ACTION_SLIDE;
+            if(isTryingToSlide && Mario->stats.canJump) Mario->actualState = ACTION_SLIDE;
 
             // Trata o slide
             if(Mario->actualState == ACTION_SLIDE){
@@ -186,12 +195,12 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
             // Movimento horizontal
             else if(wantsToMoveLeft && !wantsToMoveRight){ // Esquerda
                 Mario->speed.x = -currentMoveSpeed;
-                Mario->facingRight = false;
+                Mario->stats.facingRight = false;
                 if (Mario->actualState != ACTION_JUMPING) Mario->actualState = ACTION_WALKING; // Troca para anim de andar, caso nao esteja pulando
             }
             else if(!wantsToMoveLeft && wantsToMoveRight){ // Direita
                 Mario->speed.x = currentMoveSpeed;
-                Mario->facingRight = true;
+                Mario->stats.facingRight = true;
                 if (Mario->actualState != ACTION_JUMPING) Mario->actualState = ACTION_WALKING; // Troca para anim de andar, caso nao esteja pulando
             }
             // Atrito e desaceleracao 
@@ -211,8 +220,8 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
         // Vx no ar
         else{
             // Aplica aceleracao no ar
-            if(Mario->countAirTimeX < Mario->maxAirTimeX){
-                Mario->countAirTimeX += dt;
+            if(Mario->air_control.countAirTimeX < Mario->air_control.maxAirTimeX){
+                Mario->air_control.countAirTimeX += dt;
 
                 if(wantsToMoveLeft) {
                     Mario->speed.x -= MARIO_AIR_ACCELERATION * dt;
@@ -243,10 +252,10 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
 
     // -> Pulo e fisica da gravidade
     // Pulo
-    if ((IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_UP)) && Mario->canJump && Mario->actualState != ACTION_CROUCH) {
+    if ((IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_UP)) && Mario->stats.canJump && Mario->actualState != ACTION_CROUCH) {
         Mario->speed.y = -MARIO_JUMP_STRENGTH;
         Mario->actualState = ACTION_JUMPING;
-        Mario->canJump = false; // Só pode pular de novo quando tocar o chão
+        Mario->stats.canJump = false; // Só pode pular de novo quando tocar o chão
     }
     // Gravidade
     Mario->speed.y += GRAVITY * dt;
@@ -258,7 +267,7 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
     // -> Movimento e colisao no Eixo Y
     Mario->position.y += Mario->speed.y * dt;
     MarioHitbox(Mario);
-    Mario->canJump = false;
+    Mario->stats.canJump = false;
     // Checa e corrige a colisao e hitbox do mario
     CheckMarioHitboxY(Mario, physPlatforms, &isOnGround, bumpSound);
 
@@ -299,19 +308,19 @@ void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_fra
 void InitMario(Mario_t *Mario){
     Mario->position = MARIO_START_POSITION; 
     Mario->speed = (Vector2){0.0f, 0.0f}; 
-    Mario->invincible = false;
-    Mario->facingRight = true; 
+    Mario->stats.invincible = false;
+    Mario->stats.facingRight = true; 
     Mario->powerUpState = STATE_SMALL; 
     Mario->actualState = ACTION_IDLE;
-    Mario->lives=3; 
-    Mario->score=0;
-    Mario->coins=0;
-    Mario->canMove = true; 
-    Mario->canJump = false; 
-    Mario->deadStarted = false; 
-    Mario->deadSoundTimer = 0.0f; 
-    Mario->maxAirTimeX = 0.3f; 
-    Mario->countAirTimeX = 0.0f; 
+    Mario->stats.lives=3; 
+    Mario->stats.score=0;
+    Mario->stats.coins=0;
+    Mario->stats.canMove = true; 
+    Mario->stats.canJump = false; 
+    Mario->dead_control.deadStarted = false; 
+    Mario->dead_control.deadSoundTimer = 0.0f; 
+    Mario->air_control.maxAirTimeX = 0.3f; 
+    Mario->air_control.countAirTimeX = 0.0f; 
 
     // Renderizando os arquivos das sprites
     Mario->assets.superMarioSheet = LoadTexture("assets/textures/mario/supermario.png");
@@ -411,7 +420,7 @@ void ChangeSpriteTimer(Mario_t *Mario, FrameRange_t range){
         sprite->frameTimer = 0; 
 
         // Movendo para DIREITA
-        if(Mario->facingRight){ 
+        if(Mario->stats.facingRight){ 
             sprite->currentFrame++;
             if(sprite->currentFrame>range.end){
                 sprite->currentFrame=range.start;
@@ -472,6 +481,12 @@ void DrawMario(Mario_t *Mario){
         case ACTION_DYING:
             currentAnimData = &currentAnimDB->death;
             break;
+        case ACTION_FLAG:
+            currentAnimData = &currentAnimDB->flag;
+            break;
+        case ACTION_PIPE:
+            currentAnimData = &currentAnimDB->pipe;
+            break;
         case ACTION_DEAD_ALREADY:
             // Mario tá morto, nao tem animacao
             break;
@@ -486,7 +501,7 @@ void DrawMario(Mario_t *Mario){
         FrameRange_t range;
 
         // Pegando o range da animação
-        if(Mario->facingRight){ // Virado para direita
+        if(Mario->stats.facingRight){ // Virado para direita
             range = currentAnimData->rightAnimFrames;
         }
         else{ // Virado para esquerda
@@ -495,7 +510,7 @@ void DrawMario(Mario_t *Mario){
         ChangeSpriteTimer(Mario, range); 
     }
     else{ // Se é frame fixo
-        if(Mario->facingRight){ // Virado para direita
+        if(Mario->stats.facingRight){ // Virado para direita
             Mario->assets.activeSprite->currentFrame = currentAnimData->freezedFrameRight;
         }
         else{ // Esquerda
@@ -527,6 +542,14 @@ void InitFlag(Flag_t *Flag){
     Flag->pilar.destRec = (Rectangle){3150.0f, 99.0f, PILAR_FRAME_WIDTH_CUT*PILAR_SPRITE_SCALE, PILAR_FRAME_HEIGHT_CUT*PILAR_SPRITE_SCALE};
     Flag->pilar.frameWidthCut = Flag->pilar.sourceRec.width;
     Flag->pilar.frameHeightCut = Flag->pilar.sourceRec.height;
+
+    // Caixa de colisao para o pilar do fim de mapa
+    float hitbox_offset_x = 18.0f;
+    float hitbox_offset_y = 66.0f;
+    Flag->hitbox.x = Flag->pilar.destRec.x + hitbox_offset_x;
+    Flag->hitbox.y = Flag->pilar.destRec.y + hitbox_offset_y;
+    Flag->hitbox.width = 4*PILAR_SPRITE_SCALE;
+    Flag->hitbox.height = Flag->pilar.destRec.height - hitbox_offset_y;
 
     // Iniciando sprite da bandeira
     Flag->flag.spriteSheet = (Texture2D)LoadTexture("assets/textures/items/flag_flag.png");
@@ -571,22 +594,25 @@ void DrawFlag(Flag_t *Flag){
         WHITE
     );
 
-    DrawRectangleLinesEx(pilar.destRec, 2, RED);
+    DrawRectangleLinesEx(Flag->hitbox, 2, RED);
 }
 
+// Atualiza interacao do mario com a bandeira de fim de jogo
 void UpdateFlag(Flag_t *Flag, Mario_t *Mario, PhysPlatform_t *physPlatform){
     // Logica de fim de jogo
-    if(CheckCollisionRecs(Flag->pilar.destRec, Mario->hitbox) && (Flag->flag.destRec.y < Flag->flag_end)){
-        // Mario->actualState = ACTION_FLAG;
-        Mario->canMove = false;
+    if(CheckCollisionRecs(Flag->hitbox, Mario->hitbox) && (Flag->flag.destRec.y < Flag->flag_end)){
+        Mario->stats.facingRight = true;
+        Mario->actualState = ACTION_FLAG;
+        Mario->stats.canMove = false;
         Flag->flag.destRec.y += Flag->speed_y;
         
         // Checa se o Mario chegou no chao enquanto descia
         CheckFlagEndCollision(Mario, physPlatform);
         
+        // Fim da descida de bandeira
         if(Flag->flag.destRec.y > Flag->flag_end){
             Flag->flag.destRec.y = Flag->flag_end;
-            Mario->canMove = true;
+            Mario->stats.canMove = true;
             Mario->actualState = ACTION_IDLE;
         }
     }
