@@ -2,6 +2,7 @@
 #define SCENE_H
 
 #include "raylib.h"
+#include <stdbool.h>
 
 // Estrutura de uma plataforma fixa
 typedef struct {
@@ -19,7 +20,7 @@ typedef struct {
 
 // Prototipação das funções
 GameScene CreateGameScene(const char *backgroundImagePath);
-void DrawGameScene(GameScene scene);
+void DrawGameScene(GameScene scene, bool section);
 void UnloadGameScene(GameScene scene);
 
-#endif // GAME_SCENE_H
+#endif

@@ -94,11 +94,21 @@ int main(void) {
                 UpdateFlag(&Flag, &Mario, physPlatforms);
                 
         //         break;
+        //     case CAVERNA:
+        //         break;
         //     case OPTIONS_LEVEL:
         //         OptionsLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
         //         break; 
         //     case EXITLEVEL:
         //         ExitLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
+        //         break;
+        //     case GAMEOVER:
+        //         framecounter4++;
+        //         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
+        //         DrawText("GAME OVER", 300, 200, 50, WHITE);
+        //         if (framecounter4>100){
+        //             g->currentScreen = MENU;
+        //         }
         //         break;
         // }
 

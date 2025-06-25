@@ -383,7 +383,7 @@ void Level1Screen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
     if (IsKeyPressed(KEY_P) || IsKeyPressed(KEY_ESCAPE)) {
         g->currentScreen = OPTIONS_LEVEL;
     }
-    DrawGameScene(scene);
+    DrawGameScene(scene, Mario.isOnCave);
     DrawCoins();
     DrawInimigos();
     DrawBlocks(physPlatforms, a->block1, a->block3, a->tunnels, a->block5);
@@ -396,7 +396,7 @@ void Level1Screen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
 void OptionsLevelScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
     UpdateMusicStream(au->level_1);
 
-    DrawGameScene(scene);
+    DrawGameScene(scene, Mario.isOnCave);
     DrawRectangle(0, 0, scene.background.width, scene.background.height, Fade(BLACK, 0.5f));
     DrawTexture(a->options_square, GetScreenWidth()/2 - a->options_square.width/2, GetScreenHeight()/2 - a->options_square.height/2, WHITE);
 

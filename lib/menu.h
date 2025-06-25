@@ -15,8 +15,10 @@ typedef enum {
     OPTIONS,
     LOADING_LEVEL,
     LEVEL1,
+    CAVERNA,
     OPTIONS_LEVEL,
-    EXITLEVEL
+    EXITLEVEL,
+    GAMEOVER
 } GameScreen;
 
 // Struct de Áudio
@@ -77,6 +79,7 @@ typedef struct {
     int framecounter1;
     int framecounter2;
     int framecounter3;
+    int framecounter4;
     int sound_counter;
     bool scoreloaded;
     bool scoreloaded2;
