@@ -1,6 +1,7 @@
 #include "scene.h"
 #include "raylib.h"
 #include <stdlib.h>
+#include <stdbool.h>
 
 // Função para criar e inicializar o cenário
 GameScene CreateGameScene(const char *backgroundImagePath) {
