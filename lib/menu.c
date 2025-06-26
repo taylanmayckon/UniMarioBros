@@ -136,6 +136,7 @@ void LoadingGameScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
 }
 
 void MenuScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
+
     if (!IsMusicStreamPlaying(au->mario_menu) && g->sound_counter == 0) {
         PlayMusicStream(au->mario_menu);
     }
@@ -206,7 +207,7 @@ void OptionsScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
     FILE *p;
 
     DrawTexture(a->background_menu, 0, -10, WHITE);
-    DrawRectangle(0, -10, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
     DrawTexture(a->options_square, GetScreenWidth()/2 - a->options_square.width/2, GetScreenHeight()/2 - a->options_square.height/2, WHITE);
     DrawTexture(a->score_buttom, 320, 230, WHITE);
     DrawTexture(a->credits_buttom, 320, 340, WHITE);
@@ -312,7 +313,7 @@ void StartScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
     }
 
     DrawTexture(a->background_menu, 0, -10, WHITE);
-    DrawRectangle(0, -10, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
     DrawTexture(a->mapa_do_jogo, GetScreenWidth()/2 - a->mapa_do_jogo.width/2, GetScreenHeight()/2 - a->mapa_do_jogo.height/2, WHITE);
     DrawTexture(a->mario_de_lado, (int)g->pos_mario_automatico.x, (int)g->pos_mario_automatico.y, WHITE);
     DrawTexture(a->exit_button, 650, 80, WHITE);
@@ -388,6 +389,18 @@ void Level1Screen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
     DrawCoins();
     DrawInimigos();
     DrawBlocks(physPlatforms, a->block1, a->block3, a->tunnels, a->block5);
+    /*DrawText("CREDITS", 210, 10, 20, WHITE);
+    DrawText("SCORE", 410, 10, 20, WHITE);
+    DrawText("TIME", 510, 10, 20, WHITE);*/
+    if (Mario.stats.gameover){
+        g->currentScreen = GAMEOVER;
+        // Só acionar isso no fim da tela de gameover
+        // Mario.stats.lives = 3;
+        // Mario.actualState = ACTION_IDLE;
+    }
+    if (Mario.stats.finished == true){
+        g->currentScreen = MENU2;
+    }
 }
 
 void OptionsLevelScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {

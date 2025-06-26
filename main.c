@@ -53,7 +53,7 @@ int main(void) {
 
     Rectangle chao[4] = {{0.0f, 445.0f, 1005.0f, 120.0f},{1130.0f, 445.0f, 400.0f, 120.0f}, {1695, 445, 720, 120}, {2540, 445, 1210, 120}};
     Rectangle paredes[2] = {{1912.0f, 332.0f, 75.0f, 75.0f},{2320, 332, 75, 115}};
-    Rectangle plataforma[4] = {{580, 265, 300, 57}, {1252, 215, 180, 57}, {2006, 215, 300, 57}, {2447, 215, 300, 57}}; //3 ultimas plataformas mudou a coordenada
+    Rectangle plataforma[4] = {{580, 265, 300, 57}, {1252, 215, 180, 57}, {2006, 215, 300, 57}, {2447, 215, 300, 57}};
 
 
     SetTargetFPS(60);
@@ -101,14 +101,18 @@ int main(void) {
             case EXITLEVEL:
                 ExitLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
                 break;
-            // case GAMEOVER:
-            //     framecounter4++;
-            //     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
-            //     DrawText("GAME OVER", 300, 200, 50, WHITE);
-            //     if (framecounter4>100){
-            //         g->currentScreen = MENU;
-            //     }
-            //     break;
+            case GAMEOVER:
+                //menu_state.framecounter4++;
+                 DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
+                // DrawText("GAME OVER", 340, 200, 50, WHITE);
+                // if (menu_state.framecounter4>100){
+                //    menu_state.currentScreen = MENU;
+               //  }
+                 break;
+            case MENU2:
+                DrawRectangle (0,0,800,600,BLACK);
+            //   DrawText("YOU WIN", 400, 280, 50, WHITE);
+            break;
         }
 
         EndMode2D();

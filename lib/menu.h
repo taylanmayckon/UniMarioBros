@@ -11,6 +11,7 @@
 typedef enum {
     LOADING_GAME,
     MENU,
+    MENU2,
     START,
     OPTIONS,
     LOADING_LEVEL,
@@ -92,6 +93,7 @@ typedef struct {
     bool enterSoundPlayed;
     bool levelMusicStarted;
     bool quitOptionsPressed;
+    bool mario_mapa_automatico;
     double startPressedTime;
     double optionsPressedTime;
     double exitPressedTime;

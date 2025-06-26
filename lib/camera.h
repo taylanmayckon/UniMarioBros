@@ -7,5 +7,6 @@
 
 void InitCamera(Camera2D *gameCamera, int width, int height);
 void MoveCamera(Camera2D *gameCamera, Mario_t *Mario, GameScene *scene, int width, int height);
+void MenuCanera(Camera2D *gameCamera, int width, int height);
 
 #endif 

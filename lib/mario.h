@@ -70,6 +70,7 @@ typedef struct{
     bool isOnCave; // Se o Mario esta dentro da caverna ou nao
     bool winningGame; // Animacao de fim de jogo
     bool finished; // Venceu o jogo
+    bool gameover; // Perdeu o jogo
 } MarioStats_t;
 
 // Variaveis para limitar o controle em ar

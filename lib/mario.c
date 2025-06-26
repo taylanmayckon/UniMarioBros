@@ -74,6 +74,19 @@ void ResetMario(Mario_t *Mario){
     MarioStats_t stats_reset;
     MarioDeadControl_t dead_reset;
 
+    Mario->stats.gameover = true;
+    // if(Mario->stats.lives > 0){
+    //     Mario->stats.gameover = false;
+    // }
+        
+    if(Mario->stats.lives <= 0){
+        Mario->stats.lives = 3;
+        Mario->actualState = ACTION_IDLE;
+        // Mario->stats.gameover = true;
+        return;
+    }
+    
+
     stats_reset.canJump = true;
     stats_reset.canMove = true;
     stats_reset.facingRight = true;
@@ -118,6 +131,7 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
 
     // Considera que está morto sempre que some da tela sem estar na caverna
     if(Mario->position.y > 700.0f && !Mario->stats.isOnCave && Mario->actualState != ACTION_ENTERING_PIPE){ // O fim da tela + uns quebrados
+        Mario->stats.gameover = true;
         Mario->actualState = ACTION_DYING; // Se o Mario caiu, ele está no processo de morrer
         
         if (!Mario->dead_control.deadSoundPlayed) {
@@ -131,6 +145,7 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
         if (Mario->dead_control.deadSoundTimer >= 4.0f) {
             Mario->stats.lives--;
             Mario->actualState = ACTION_DEAD_ALREADY; // AGORA sim, ele está pronto para o reset
+            ResetMario(Mario);
         }
         return; 
     }

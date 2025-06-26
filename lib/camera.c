@@ -35,4 +35,12 @@ void MoveCamera(Camera2D *gameCamera, Mario_t *Mario, GameScene *scene, int widt
     if (Mario->position.x < currentCameraLeftEdge) {
         Mario->position.x = currentCameraLeftEdge;
     }
+
+    
+}
+
+void MenuCamera(Camera2D *gameCamera, int width, int height){
+    gameCamera->offset = (Vector2){ width / 2.0f, height / 2.0f }; // Offset da câmera
+    gameCamera->zoom   = 1.0f; // Zoom
+    gameCamera->rotation = 0.0f; // Rotação
 }
