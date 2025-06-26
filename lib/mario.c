@@ -103,11 +103,10 @@ void deathAnim(Mario_t *Mario, int death_frame){
     Mario->position.y += Mario->speed.y * dt;
 }
 
-
 // Pega inputs do teclado, processa a física e gera outputs para outras libs
 void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCount, Sound bumpSound) {
-    // Considera que está morto sempre que some da tela
-    if(Mario->position.y > 700.0f){ // O fim da tela + uns quebrados
+    // Considera que está morto sempre que some da tela sem estar na caverna
+    if(Mario->position.y > 700.0f && !Mario->stats.isOnCave){ // O fim da tela + uns quebrados
         Mario->actualState = ACTION_DYING; // Se o Mario caiu, ele está no processo de morrer
         
         if (!Mario->dead_control.deadSoundPlayed) {
@@ -154,6 +153,24 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
     bool wantsToMoveRight = IsKeyDown(KEY_RIGHT);
     bool wantsToCrouch = IsKeyDown(KEY_DOWN);
     bool isTryingToRun = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT); 
+
+    // Detecta animacao de entrar no cano
+    Rectangle secret_pipe; //  Muda para uma hitbox acima do cano secreto, faz bem pequeno rente ao chao e prolonga até onde quer a animacao
+    // Detecta entrada na entrada secreta
+    if(CheckCollisionRecs(secret_pipe, Mario->hitbox) && wantsToCrouch) Mario->actualState = ACTION_ENTERING_PIPE;
+    // Tratamento da passagem para fase secreta
+    if(Mario->actualState==ACTION_ENTERING_PIPE){
+        Mario->position.y += 4.0f; 
+        if(CheckCollisionRecs(secret_pipe, Mario->hitbox) && wantsToCrouch){
+            Mario->actualState = ACTION_IDLE;
+            Mario->stats.facingRight = true;
+            Mario->position.x = Mario->position.x;
+            Mario->position.y = Mario->position.y;
+        }
+        return; // Retorno pra nao processar fisica e afins
+    }
+
+    
 
     // Modifica pra fazer aumento gradual de velocidade de andar até correr na vel max
     float currentMoveSpeed = isTryingToRun ? MARIO_RUN_SPEED : MARIO_WALK_SPEED;   
@@ -484,7 +501,7 @@ void DrawMario(Mario_t *Mario){
         case ACTION_FLAG:
             currentAnimData = &currentAnimDB->flag;
             break;
-        case ACTION_PIPE:
+        case ACTION_ENTERING_PIPE:
             currentAnimData = &currentAnimDB->pipe;
             break;
         case ACTION_DEAD_ALREADY:

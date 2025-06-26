@@ -19,7 +19,7 @@ typedef enum{
     ACTION_SLIDE, // Mario deslizando (parando de correr)
     ACTION_CROUCH, // Mario abaixado
     ACTION_FLAG, // Descendo na bandeira
-    ACTION_PIPE, // Entrando no cano
+    ACTION_ENTERING_PIPE, // Entrando no cano
     ACTION_DYING, // Morrendo
     ACTION_DEAD_ALREADY, // Morto de fato
     ACTION_THROW, // Jogar bola de fogo
@@ -68,6 +68,7 @@ typedef struct{
     bool canJump; // Booleano para indicar que pode pular
     bool facingRight; // Se esta olhando para a direita ou não (1: direita, 0: não)
     bool isOnCave; // Se o Mario esta dentro da caverna ou nao
+    bool winningGame; // Animacao de fim de jogo
 } MarioStats_t;
 
 // Variaveis para limitar o controle em ar
