@@ -3,36 +3,49 @@
 
 #include "raylib.h"
 #include "mario.h"
-#include "mario_animdb.h"
 
 // Estrutura da moeda animada
 typedef struct {
-    Vector2   position;    // Posição
-    Rectangle sourceRec;   // Retângulo de origem
-    int       currentFrame;// Frame atual
-    int       frameCounter;// Contador de frames
-    int       totalFrames; // Total de frames
-    int       frameSpeed;  // Velocidade da animação
-    float     frameWidth;  // Largura do frame
-    float     frameHeight; // Altura do frame
-    bool      active;      // Ativa ou não
+    Vector2   position;     // Posição da moeda
+    Rectangle sourceRec;    // Retângulo da textura
+    int       currentFrame; // Frame atual da animação
+    int       frameCounter; // Contador de tempo da animação
+    int       totalFrames;  // Total de frames
+    int       frameSpeed;   // Velocidade de troca de frame
+    float     frameWidth;   // Largura do frame
+    float     frameHeight;  // Altura do frame
+    bool      active;       // Se está visível ou já foi coletada
 } Coin_t;
 
-// Máximo de moedas
-#define MAX_COINS 10
+// --- Pontuação flutuante ao coletar moeda ou matar inimigo ---
+typedef struct {
+    Vector2 position;       // Posição onde o texto aparece
+    int     value;          // Pontuação (ex: 100)
+    float   alpha;          // Transparência do texto
+    float   lifetime;       // Tempo restante visível
+    bool    active;         // Se está visível ou não
+} FloatingScore_t;
 
-// Contador de moedas
-extern int  coinCount;
-// Vetor de moedas
+#define MAX_COINS 100
+#define MAX_FLOATING_SCORES 32
+
+// Moedas
+extern int coinCount;
 extern Coin_t coins[MAX_COINS];
-
-// Textura das moedas
 extern Texture2D coinAtlas;
 
-// Prototipação de funções auxiliares
+// Animações de pontuação
+extern FloatingScore_t floatingScores[MAX_FLOATING_SCORES];
+
+// Funções de moedas
 Coin_t CreateCoin(Vector2 position);
 void InitCoins(Coin_t *coins);
 void UpdateCoins(Mario_t *Mario);
 void DrawCoins(void);
+
+// Funções da animação de pontuação
+void AddScoreAtPosition(Vector2 position, int value);
+void UpdateFloatingScores(void);
+void DrawFloatingScores(void);
 
 #endif // COIN_H

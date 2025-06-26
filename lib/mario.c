@@ -5,7 +5,7 @@
 #include "mario_animdb.h"
 #include "platform.h"
 #include "collisions.h"
-
+#include "coin.h"
 
 // -> DIMENSOES DAS SPRITES DO MARIO
 // (NORMAL MARIO) 
@@ -62,9 +62,9 @@ void MarioHitbox(Mario_t *Mario){
     float y = Mario->position.y - height; // Y do retângulo
 
     Mario->hitbox = (Rectangle){
-        x - (MARIO_SPRITE_SCALE * Mario->assets.activeSprite->frameWidthCut),  // Ajuste X
+        x - (MARIO_SPRITE_SCALE * Mario->assets.activeSprite->frameWidthCut) + 7.0f,  // Ajuste X
         y, // Ajuste Y
-        width, // Ajuste largura
+        width - 15.0f, // Ajuste largura
         height  // Ajuste altura 
     };
 }
@@ -74,7 +74,7 @@ void ResetMario(Mario_t *Mario){
     MarioStats_t stats_reset;
     MarioDeadControl_t dead_reset;
 
-    Mario->stats.gameover = true;
+    Mario->stats.gameover = false;
     // if(Mario->stats.lives > 0){
     //     Mario->stats.gameover = false;
     // }
@@ -131,7 +131,7 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
 
     // Considera que está morto sempre que some da tela sem estar na caverna
     if(Mario->position.y > 700.0f && !Mario->stats.isOnCave && Mario->actualState != ACTION_ENTERING_PIPE){ // O fim da tela + uns quebrados
-        Mario->stats.gameover = true;
+        Mario->stats.gameover = false;
         Mario->actualState = ACTION_DYING; // Se o Mario caiu, ele está no processo de morrer
         
         if (!Mario->dead_control.deadSoundPlayed) {
@@ -144,7 +144,7 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
 
         if (Mario->dead_control.deadSoundTimer >= 4.0f) {
             Mario->stats.lives--;
-            Mario->actualState = ACTION_DEAD_ALREADY; // AGORA sim, ele está pronto para o reset
+            // Mario->actualState = ACTION_DEAD_ALREADY; // AGORA sim, ele está pronto para o reset
             ResetMario(Mario);
         }
         return; 
@@ -187,9 +187,9 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
     }
 
     // Leitura de inputs do teclado
-    bool wantsToMoveLeft = IsKeyDown(KEY_LEFT);
-    bool wantsToMoveRight = IsKeyDown(KEY_RIGHT);
-    bool wantsToCrouch = IsKeyDown(KEY_DOWN);
+    bool wantsToMoveLeft = IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A);
+    bool wantsToMoveRight = IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D);
+    bool wantsToCrouch = IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S);
     bool isTryingToRun = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT); 
 
     // Detecta animacao de entrar no cano da caverna
@@ -709,6 +709,7 @@ void UpdateFlag(Flag_t *Flag, Mario_t *Mario, PhysPlatform_t *physPlatform){
             Flag->flag.destRec.y = Flag->flag_end;
             Mario->actualState = ACTION_WALKING;
             Mario->stats.winningGame = true;
+            AddScoreAtPosition((Vector2){Flag->flag.destRec.x, Flag->flag.destRec.y - 10.0f}, 1000);
         }
     }
     DrawFlag(Flag);

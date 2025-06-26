@@ -387,7 +387,8 @@ void Level1Screen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
     DrawGameScene(scene, Mario.stats.isOnCave);
     DrawMario(&Mario);
     DrawCoins();
-    DrawInimigos();
+    DrawFloatingScores();
+    DrawInimigos(false);
     DrawBlocks(physPlatforms, a->block1, a->block3, a->tunnels, a->block5);
     /*DrawText("CREDITS", 210, 10, 20, WHITE);
     DrawText("SCORE", 410, 10, 20, WHITE);

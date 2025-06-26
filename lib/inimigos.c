@@ -3,6 +3,7 @@
 #include "inimigos.h"
 #include "mario.h"
 #include "collisions.h"
+#include "coin.h"
 
 #define GOOMBA_VEL_X 2
 #define GOOMBA_FRAMES_ANIMACAO 15
@@ -15,6 +16,7 @@
 #define TARTARUGA_TEMPO_SAINDO_CASCO 1.0f
 
 static Texture2D texturaInimigos;
+Sound somInimigoMorrendo;
 
 
 
@@ -235,7 +237,10 @@ void ProcessarColisaoGoombaComMario(Goomba *goomba, Mario_t *Mario) {
             goomba->estadoAtual = goombaAmassado;
             goomba->velocidade.x = 0; // Para de andar
             goomba->temporizadorPisado = 0.5f; // Inicia o timer para sumir
-            
+            somInimigoMorrendo = LoadSound("assets/audio/smw_stomp.wav");  
+            PlaySound(somInimigoMorrendo);
+              AddScoreAtPosition((Vector2){goomba->rect.x, goomba->rect.y - 20}, 100);
+              Mario->stats.score += 100;            
             
             if (goomba->rect.height == alturaAndandoGoombaTela) { 
                  goomba->rect.y += (alturaAndandoGoombaTela - alturaAmassadoGoombaTela); 
@@ -246,7 +251,7 @@ void ProcessarColisaoGoombaComMario(Goomba *goomba, Mario_t *Mario) {
             // AQUI VOCE TAMBEM PODE ADICIONAR UM SOM DE PISAO
         } else {
             // Colisao no Eixo X
-           // CheckEnemyCollision(Mario, goomba->rect);
+           CheckEnemyCollision(Mario, goomba->rect);
 
         }
     }
@@ -357,7 +362,7 @@ void ProcessarColisaoPlantaComMario(PlantaCarnivora *planta, Mario_t *Mario) {
     }
 
     // Verifica se há colisão entre o retângulo da planta e o do Mario
-   // CheckEnemyCollision(Mario, planta->rect);
+    CheckEnemyCollision(Mario, planta->rect);
 }
 
 Tartaruga CriarTarturuga(Vector2 posicaoInicial, float distanciaParaPatrulhar){
@@ -615,6 +620,10 @@ void ProcessarColisaoTartarugaComMario(Tartaruga *tartaruga, Mario_t *Mario){
         
         if (colisaoDePiso) {
             Mario->speed.y = alturaBounceMario; // Mario quica
+            somInimigoMorrendo = LoadSound("assets/audio/smw_stomp.wav");
+            PlaySound(somInimigoMorrendo);
+            
+    
 
             if (tartaruga->estadoAtual == tartarugaAndando) {
                 tartaruga->estadoAtual = tartarugaCascoParado;
@@ -643,10 +652,12 @@ void ProcessarColisaoTartarugaComMario(Tartaruga *tartaruga, Mario_t *Mario){
         } else {
             // Colisão LATERAL OU POR BAIXO (NÃO PISÃO)
             if (tartaruga->estadoAtual == tartarugaAndando) {
-                //CheckEnemyCollision(Mario, tartaruga->rect);
+               CheckEnemyCollision(Mario, tartaruga->rect);
             }
             else if (tartaruga->estadoAtual == tartarugaCascoParado) {
                 // COLISÃO LATERAL COM CASCO PARADO: Mario empurra o casco
+; 
+
                 tartaruga->estadoAtual = tartarugaCascoRolando;
                 if (Mario->hitbox.x + Mario->hitbox.width / 2 < tartaruga->rect.x + tartaruga->rect.width / 2) {
                     tartaruga->velocidadeRolando.x = TARTARUGA_VEL_CASCO_ROLANDO; // Empurra para a direita
@@ -661,7 +672,7 @@ void ProcessarColisaoTartarugaComMario(Tartaruga *tartaruga, Mario_t *Mario){
     }
 }
 
-void ProcessarColisaoCascoRolandoComGoomba(Tartaruga *cascoRolando, Goomba *goomba){
+void ProcessarColisaoCascoRolandoComGoomba(Tartaruga *cascoRolando, Goomba *goomba, Mario_t *Mario) {
     if (!cascoRolando->viva || cascoRolando->estadoAtual != tartarugaCascoRolando ||
         !goomba->vivo || goomba->estadoAtual != goombaAndando) {
         return;
@@ -669,6 +680,8 @@ void ProcessarColisaoCascoRolandoComGoomba(Tartaruga *cascoRolando, Goomba *goom
 
     // Verifica colisão entre o retângulo do casco rolando e o do Goomba
     if (CheckCollisionRecs(cascoRolando->rect, goomba->rect)) {
+         AddScoreAtPosition((Vector2){goomba->rect.x, goomba->rect.y - 10.0f}, 200);
+        Mario->stats.score += 200; 
         goomba->estadoAtual = goombaCaindo; 
         goomba->velocidade.x = 0;             
         goomba->velocidade.y = -8.0f; 
@@ -701,6 +714,7 @@ void InitInimigos(void) {
 }
 
 void UpdateInimigos(Rectangle *chao, Rectangle *plataforma, Rectangle *paredes, int numParedes, Mario_t *Mario) {
+    
     for (int i = 0; i < NUM_GOOMBA; i++) {
         if (listaDeGoombas[i].vivo) {
             AtualizarGoomba(&listaDeGoombas[i], paredes, numParedes);
@@ -724,7 +738,7 @@ void UpdateInimigos(Rectangle *chao, Rectangle *plataforma, Rectangle *paredes, 
                 if(listaDeTartarugas[i].estadoAtual == tartarugaCascoRolando){
                     for(int j = 0; j < NUM_GOOMBA; j++){
                         if(listaDeGoombas[j].vivo && listaDeGoombas[j].estadoAtual == goombaAndando){
-                            ProcessarColisaoCascoRolandoComGoomba(&listaDeTartarugas[i], &listaDeGoombas[j]);
+                            ProcessarColisaoCascoRolandoComGoomba(&listaDeTartarugas[i], &listaDeGoombas[j], Mario);
                         }
                     }
                 }
@@ -732,22 +746,22 @@ void UpdateInimigos(Rectangle *chao, Rectangle *plataforma, Rectangle *paredes, 
         }
     }
 
-void DrawInimigos(){
+void DrawInimigos(bool caverna){
     
     for (int i = 0; i < NUM_GOOMBA; i++) {
-        if (listaDeGoombas[i].vivo) {
+        if (!caverna) {
             DesenharGoomba(listaDeGoombas[i], texturaInimigos);
         }
     }
 
     for (int i = 0; i < NUM_PLANTAS; i++) {
-        if (listaDePlantas[i].viva) {
+        if (!caverna) {
             DesenharPlantaCarnivora(listaDePlantas[i], texturaInimigos);
         }
     }
 
     for (int i = 0; i < NUM_TARTARUGAS; i++) {
-        if(listaDeTartarugas[i].viva){
+        if(!caverna){
             DesenharTartaruga(listaDeTartarugas[i], texturaInimigos);
         }
     }

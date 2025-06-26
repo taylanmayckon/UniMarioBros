@@ -2,34 +2,54 @@
 #include "raylib.h"
 #include "coin.h"
 
-// Função para criar uma moeda
+// === VARIÁVEIS GLOBAIS ===
+int coinCount = 0;
+Coin_t coins[MAX_COINS];
+Texture2D coinAtlas;
+
+FloatingScore_t floatingScores[MAX_FLOATING_SCORES]; // Para textos +100
+
+// === MOEDA ===
 Coin_t CreateCoin(Vector2 position) {
     return (Coin_t){
-        .position     = position, // Posição
-        .frameCounter = 0,        // Contador
-        .currentFrame = 0,        // Frame inicial
-        .totalFrames  = 4,        // Total de frames
-        .frameSpeed   = 8,        // Velocidade
-        .frameWidth   = 16.0f,    // Largura
-        .frameHeight  = 16.0f,    // Altura
-        .sourceRec    = { 0.0f, 0.0f, 16.0f, 16.0f }, // Origem
-        .active       = true      // Ativa
+        .position     = position,
+        .frameCounter = 0,
+        .currentFrame = 0,
+        .totalFrames  = 4,
+        .frameSpeed   = 8,
+        .frameWidth   = 16.0f,
+        .frameHeight  = 16.0f,
+        .sourceRec    = { 0.0f, 0.0f, 16.0f, 16.0f },
+        .active       = true
     };
 }
 
-void InitCoins(Coin_t *coins){
-    coinCount = 0; // Zera moedas
-    coins[coinCount++] = CreateCoin((Vector2){585.0f, 155.0f}); // Cria moeda
+void InitCoins(Coin_t *coinsArray) {
+    coinCount = 0;
+    coins[coinCount++] = CreateCoin((Vector2){585.0f, 125.0f});
     coins[coinCount++] = CreateCoin((Vector2){705.0f, 0.0f});
     coins[coinCount++] = CreateCoin((Vector2){825.0f, 155.0f});
-    coins[coinCount++] = CreateCoin((Vector2){712.0f, 225.0f});
+
+    float startX = 1252.0f;
+    for (int i = 0; i < 3; i++) {
+        coins[coinCount++] = CreateCoin((Vector2){startX + i * 60.0f, 125.0f});
+    }
+
+    startX = 2006.0f;
+    for (int i = 0; i < 5; i++) {
+        coins[coinCount++] = CreateCoin((Vector2){startX + i * 60.0f, 125.0f});
+    }
+
+    startX = 2507.0f;
+    for (int i = 0; i < 5; i++) {
+        coins[coinCount++] = CreateCoin((Vector2){startX + i * 60.0f, 125.0f});
+    }
 }
 
-// Atualiza moedas
 void UpdateCoins(Mario_t *Mario) {
     for (int i = 0; i < coinCount; i++) {
-        Coin_t *c = &coins[i]; // Moeda
-        if (!c->active) continue; // Se não ativa, pula
+        Coin_t *c = &coins[i];
+        if (!c->active) continue;
 
         Rectangle coinRect = {
             c->position.x + 3.0f,
@@ -38,33 +58,33 @@ void UpdateCoins(Mario_t *Mario) {
             c->frameHeight * 3.0f - 6.0f
         };
 
-        if (CheckCollisionRecs(Mario->hitbox, coinRect)) { // Se colidiu
-            c->active = false; // Desativa moeda
-            Mario->stats.coins++;    // Incrementa moedas
-            Mario->stats.score += 100; // Pontuação
+        if (CheckCollisionRecs(Mario->hitbox, coinRect)) {
+            c->active = false;
+            Mario->stats.coins++;
+            Mario->stats.score += 100;
+
+            // Mostra pontuação na posição da moeda
+            AddScoreAtPosition((Vector2){c->position.x, c->position.y - 10.0f}, 100);
         }
 
-        c->frameCounter++; // Incrementa contador
+        c->frameCounter++;
         if (c->frameCounter >= (int)(60 / c->frameSpeed)) {
-            c->frameCounter = 0; // Zera contador
-            c->currentFrame = (c->currentFrame + 1) % c->totalFrames; // Próximo frame
-            c->sourceRec.x = c->currentFrame * c->frameWidth; // Atualiza origem
+            c->frameCounter = 0;
+            c->currentFrame = (c->currentFrame + 1) % c->totalFrames;
+            c->sourceRec.x = c->currentFrame * c->frameWidth;
         }
     }
 }
 
-// Desenha moedas
 void DrawCoins(void) {
     for (int i = 0; i < coinCount; i++) {
-        Coin_t *c = &coins[i]; // Moeda
-        if (!c->active) continue; // Se não ativa, pula
+        Coin_t *c = &coins[i];
+        if (!c->active) continue;
 
         DrawTexturePro(
-            coinAtlas, // Textura moeda
-            c->sourceRec, // Origem
-            (Rectangle){ c->position.x, c->position.y,
-                         c->frameWidth  * 3.0f,
-                         c->frameHeight * 3.0f },
+            coinAtlas,
+            c->sourceRec,
+            (Rectangle){ c->position.x, c->position.y, c->frameWidth * 3.0f, c->frameHeight * 3.0f },
             (Vector2){ 0.0f, 0.0f },
             0.0f,
             WHITE
@@ -72,7 +92,44 @@ void DrawCoins(void) {
     }
 }
 
-// Variáveis definidas em coin.c
-int coinCount = 0;
-Coin_t coins[MAX_COINS];
-Texture2D coinAtlas;
+// === PONTUAÇÃO FLUTUANTE ===
+void AddScoreAtPosition(Vector2 position, int value) {
+    for (int i = 0; i < MAX_FLOATING_SCORES; i++) {
+        if (!floatingScores[i].active) {
+            floatingScores[i] = (FloatingScore_t){
+                .position = position,
+                .value = value,
+                .alpha = 1.0f,
+                .lifetime = 1.0f, // 1 segundo visível
+                .active = true
+            };
+            break;
+        }
+    }
+}
+
+void UpdateFloatingScores(void) {
+    float dt = GetFrameTime();
+    for (int i = 0; i < MAX_FLOATING_SCORES; i++) {
+        if (!floatingScores[i].active) continue;
+
+        floatingScores[i].lifetime -= dt;
+        floatingScores[i].position.y -= 30.0f * dt;  // Sobe
+        floatingScores[i].alpha -= dt;              // Fica transparente
+
+        if (floatingScores[i].lifetime <= 0 || floatingScores[i].alpha <= 0) {
+            floatingScores[i].active = false;
+        }
+    }
+}
+
+void DrawFloatingScores(void) {
+    for (int i = 0; i < MAX_FLOATING_SCORES; i++) {
+        if (!floatingScores[i].active) continue;
+
+        Color color = Fade(YELLOW, floatingScores[i].alpha);
+        char text[16];
+        snprintf(text, sizeof(text), "+%d", floatingScores[i].value);
+        DrawText(text, floatingScores[i].position.x, floatingScores[i].position.y, 20, color);
+    }
+}

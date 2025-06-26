@@ -42,12 +42,11 @@ int main(void) {
 
     bumpSound = LoadSound("assets/audio/bump.wav");
     jumpSound = LoadSound("assets/audio/jump.wav");
-    coinAtlas = LoadTexture("assets/textures/items/coin.png");
-    Texture2D texturaInimigos = LoadTexture("assets/textures/inimigos.png");
-    Texture2D tuneis = LoadTexture("assets/textures/blocks/tunnels.png");
+    coinAtlas = LoadTexture("assets/textures/items/coinfix.png");
 
     InitMario(&Mario);
     InitInimigos();
+    InitCoins(coins);
     InitPlatforms(physPlatforms);
     InitCamera(&gameCamera, SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -89,6 +88,7 @@ int main(void) {
                 UpdateInimigos(chao, plataforma, paredes, 2, &Mario); // <-- Atualiza inimigos
                 UpdatePlatforms(physPlatforms);
                 UpdateCoins(&Mario);
+                UpdateFloatingScores();
                 Level1Screen(&menu_state, &icons, &audio, &iconsinvisible);
                 UpdateFlag(&Flag, &Mario, physPlatforms);
                 

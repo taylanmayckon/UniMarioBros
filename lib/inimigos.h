@@ -109,9 +109,9 @@ void DesenharTartaruga(Tartaruga tartaruga, Texture2D texturaInimigos);
 void AtualizarTartaruga(Tartaruga *tartaruga, Rectangle paredes[], int numParedes);
 void ResolverColisoesCenarioTartaruga(Tartaruga *tartaruga, Rectangle chaoPrincipal[], int numChao, Rectangle plataforma[], int numPlataforma);
 void ProcessarColisaoTartarugaComMario(Tartaruga *tartaruga, Mario_t *Mario);
-void ProcessarColisaoCascoRolandoComGoomba(Tartaruga *cascoRolando, Goomba *goomba);
+void ProcessarColisaoCascoRolandoComGoomba(Tartaruga *cascoRolando, Goomba *goomba, Mario_t *Mario);
 void InitInimigos(void);
 void UpdateInimigos(Rectangle *chao, Rectangle *plataforma, Rectangle *paredes, int numParedes,Mario_t *Mario);
-void DrawInimigos(void);
+void DrawInimigos(bool caverna);
 void UnloadInimigos(void);
 #endif //INIMIGOS_H
