@@ -118,6 +118,7 @@ int main(void) {
     //Liberação dos recursos
     UnloadAll(&icons, &audio);
     UnloadMario(&Mario);
+    UnloadFlag(&Flag);
   
     CloseWindow();
 

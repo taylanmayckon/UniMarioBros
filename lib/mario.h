@@ -69,6 +69,7 @@ typedef struct{
     bool facingRight; // Se esta olhando para a direita ou não (1: direita, 0: não)
     bool isOnCave; // Se o Mario esta dentro da caverna ou nao
     bool winningGame; // Animacao de fim de jogo
+    bool finished; // Venceu o jogo
 } MarioStats_t;
 
 // Variaveis para limitar o controle em ar
@@ -139,5 +140,6 @@ void ResetMario(Mario_t *Mario);
 void InitFlag(Flag_t *Flag);
 void DrawFlag(Flag_t *Flag);
 void UpdateFlag(Flag_t *Flag, Mario_t *Mario, PhysPlatform_t *physPlatform);
+void UnloadFlag(Flag_t *Flag);
 
 #endif

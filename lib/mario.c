@@ -31,7 +31,8 @@
 
 // Posicao inicial do mario
 // #define MARIO_START_POSITION (Vector2){260.0f, 100.0f}
-#define MARIO_START_POSITION (Vector2){1517.0f, 0.0f}
+#define MARIO_START_POSITION (Vector2){3000.0f, 0.0f}
+#define MARIO_END_POSITION_X 3515.0f
 
 // Constantes de Física e Movimento 
 #define MARIO_WALK_SPEED 200.0f // Velocidade de caminhada base
@@ -105,6 +106,10 @@ void deathAnim(Mario_t *Mario, int death_frame){
 
 // Pega inputs do teclado, processa a física e gera outputs para outras libs
 void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCount, Sound bumpSound) {
+    float dt = GetFrameTime(); 
+    bool isOnGround = false; // Assume que inicialmente o Mario est[a no ar no inicio de cada frame
+
+
     // Considera que está morto sempre que some da tela sem estar na caverna
     if(Mario->position.y > 700.0f && !Mario->stats.isOnCave && Mario->actualState != ACTION_ENTERING_PIPE){ // O fim da tela + uns quebrados
         Mario->actualState = ACTION_DYING; // Se o Mario caiu, ele está no processo de morrer
@@ -139,28 +144,32 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
         Mario->stats.canMove = false;
     }
 
+    // Animacao de finalizar o jogo
+    if(Mario->stats.winningGame){
+        Mario->position.x += MARIO_WALK_SPEED*dt/2;
+        Mario->speed.y += GRAVITY * dt;
+        Mario->position.y += Mario->speed.y * dt;
+        MarioHitbox(Mario);
+        // Checa e corrige a colisao e hitbox do mario
+        CheckMarioHitboxY(Mario, physPlatforms, &isOnGround, bumpSound);
+        if(Mario->position.x >= MARIO_END_POSITION_X){
+            Mario->stats.winningGame = false;
+            Mario->stats.finished = true;
+            Mario->actualState=ACTION_IDLE;
+        }
+    }
+
     // Isso é pra processar quando pegar cogumelo, morrer, pegar bandeira...
     if(!Mario->stats.canMove){
         Mario->speed.x = 0; // Para o slide
         return;
     }
 
-    float dt = GetFrameTime(); 
-    bool isOnGround = false; // Assume que inicialmente o Mario est[a no ar no inicio de cada frame
-
     // Leitura de inputs do teclado
     bool wantsToMoveLeft = IsKeyDown(KEY_LEFT);
     bool wantsToMoveRight = IsKeyDown(KEY_RIGHT);
     bool wantsToCrouch = IsKeyDown(KEY_DOWN);
     bool isTryingToRun = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT); 
-
-    // Para controlar a passagem para fase secreta
-    // typedef struct{
-    //     Vector2 previous_position; // Armazena a posicao antes de entrar no cano
-    //     Vector2 cave_coord; // Coordenadas do tp da caverna (x,y)
-    //     Rectangle entrance; // Hitbox da entrada
-    //     Rectangle exit; // Hitbox da saida
-    // } MarioCaveControl_t;
 
     // Detecta animacao de entrar no cano da caverna
     if(CheckCollisionRecs(Mario->cave_control.entrance, Mario->hitbox) && wantsToCrouch){
@@ -357,6 +366,8 @@ void InitMario(Mario_t *Mario){
     Mario->stats.canMove = true; 
     Mario->stats.canJump = false; 
     Mario->stats.isOnCave = false;
+    Mario->stats.winningGame = false;
+    Mario->stats.finished = false;
 
     Mario->dead_control.deadStarted = false; 
     Mario->dead_control.deadSoundTimer = 0.0f; 
@@ -661,8 +672,8 @@ void UpdateFlag(Flag_t *Flag, Mario_t *Mario, PhysPlatform_t *physPlatform){
         // Fim da descida de bandeira
         if(Flag->flag.destRec.y > Flag->flag_end){
             Flag->flag.destRec.y = Flag->flag_end;
-            Mario->stats.canMove = true;
-            Mario->actualState = ACTION_IDLE;
+            Mario->actualState = ACTION_WALKING;
+            Mario->stats.winningGame = true;
         }
     }
     DrawFlag(Flag);
@@ -675,4 +686,10 @@ void UnloadMario(Mario_t *Mario){
     UnloadTexture(Mario->assets.fireMarioSheet);
 
     UnloadSound(Mario->assets.deathSound);
+}
+
+// Descarrega os assets da bandeira
+void UnloadFlag(Flag_t *Flag){
+    UnloadTexture(Flag->flag.spriteSheet);
+    UnloadTexture(Flag->pilar.spriteSheet);
 }
