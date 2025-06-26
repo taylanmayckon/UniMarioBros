@@ -71,9 +71,6 @@ void MarioHitbox(Mario_t *Mario){
 
 // Funcao para resetar o Mario para as configurações de fábrica
 void ResetMario(Mario_t *Mario){
-    MarioStats_t stats_reset;
-    MarioDeadControl_t dead_reset;
-
     Mario->stats.gameover = false;
     // if(Mario->stats.lives > 0){
     //     Mario->stats.gameover = false;
@@ -87,23 +84,21 @@ void ResetMario(Mario_t *Mario){
     }
     
 
-    stats_reset.canJump = true;
-    stats_reset.canMove = true;
-    stats_reset.facingRight = true;
-    stats_reset.invincible = false;
-    stats_reset.isOnCave = false;
+    Mario->stats.canJump = true;
+    Mario->stats.canMove = true;
+    Mario->stats.facingRight = true;
+    Mario->stats.invincible = false;
+    Mario->stats.isOnCave = false;
 
-    dead_reset.deadStarted = false;
-    dead_reset.deadSoundTimer = 0.0f;
-    dead_reset.deadSoundPlayed = false;
+    Mario->dead_control.deadStarted = false;
+    Mario->dead_control.deadSoundTimer = 0.0f;
+    Mario->dead_control.deadSoundPlayed = false;
 
     
     Mario->position = MARIO_START_POSITION; 
     Mario->speed = (Vector2){0.0f, 0.0f}; 
     Mario->powerUpState = STATE_SMALL; 
     Mario->actualState = ACTION_IDLE; 
-    Mario->stats = stats_reset;
-    Mario->dead_control = dead_reset;
     Mario->air_control.countAirTimeX = 0.0f;
 }
 

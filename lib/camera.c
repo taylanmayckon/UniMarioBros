@@ -10,8 +10,15 @@ void InitCamera(Camera2D *gameCamera, int width, int height){
     gameCamera->rotation = 0.0f; // Rotação
 }
 
-void MoveCamera(Camera2D *gameCamera, Mario_t *Mario, GameScene *scene, int width, int height){
-    float old_position = gameCamera->target.x;
+void MoveCamera(Camera2D *gameCamera, Mario_t *Mario, GameScene *scene, int width, int height, bool end_screen){
+    float old_position;
+    if(end_screen){
+        old_position = 0.0f;
+    }
+    else{
+        old_position = gameCamera->target.x;
+    }
+    
     float camTargetX = roundf(Mario->position.x); // Arredonda X da câmera
 
     // Impede o retorno de camera ao avancar na fase (quando nao ta na fase secreta)
@@ -37,10 +44,4 @@ void MoveCamera(Camera2D *gameCamera, Mario_t *Mario, GameScene *scene, int widt
     }
 
     
-}
-
-void MenuCamera(Camera2D *gameCamera, int width, int height){
-    gameCamera->offset = (Vector2){ width / 2.0f, height / 2.0f }; // Offset da câmera
-    gameCamera->zoom   = 1.0f; // Zoom
-    gameCamera->rotation = 0.0f; // Rotação
 }

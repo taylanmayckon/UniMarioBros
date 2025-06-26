@@ -51,6 +51,7 @@ int main(void) {
     InitCoins(coins);
     InitPlatforms(physPlatforms);
     InitCamera(&gameCamera, SCREEN_WIDTH, SCREEN_HEIGHT);
+    bool end_screen = false;
 
     Rectangle chao[4] = {{0.0f, 445.0f, 1005.0f, 120.0f},{1130.0f, 445.0f, 400.0f, 120.0f}, {1695, 445, 720, 120}, {2540, 445, 1210, 120}};
     Rectangle paredes[2] = {{1912.0f, 332.0f, 75.0f, 75.0f},{2320, 332, 75, 115}};
@@ -64,7 +65,7 @@ int main(void) {
 
         BeginDrawing();
         ClearBackground(BLACK);
-        MoveCamera(&gameCamera, &Mario, &scene, SCREEN_WIDTH, SCREEN_HEIGHT);
+        MoveCamera(&gameCamera, &Mario, &scene, SCREEN_WIDTH, SCREEN_HEIGHT, end_screen);
         BeginMode2D(gameCamera);
 
         //Controle de Telas
@@ -112,8 +113,19 @@ int main(void) {
                //  }
                  break;
             case MENU2:
+                if(menu_state.framecounter4 == 0){
+                    ResetMario(&Mario);
+                    end_screen = true;
+                }
+                menu_state.framecounter4++;
                 DrawRectangle (0,0,800,600,BLACK);
-            //   DrawText("YOU WIN", 400, 280, 50, WHITE);
+                DrawText("YOU WIN", 400, 280, 50, WHITE);
+                if(menu_state.framecounter4>100){
+                    menu_state.currentScreen=MENU;
+                    end_screen = false;
+                    Mario.stats.finished = false;
+                    menu_state.framecounter4 = 0;
+                }
             break;
         }
 
