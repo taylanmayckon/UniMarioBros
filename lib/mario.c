@@ -46,6 +46,10 @@
 #define AIR_FRICTION_COEFF 0.98f // Coeficiente de atrito no ar (2 anos de aero, se tá no ar tem arrasto)
 #define STOP_SPEED_THRESHOLD 10.0f  // Abaixo desta Vx, considera-se parado
 #define MARIO_AIR_ACCELERATION 1600.0f // Aceleração que o jogador pode aplicar no ar (pixels/s^2)
+// Constantes para controlar a transicao de animacao de andar/correr
+#define ANIM_SPEED_WALK 0.15f 
+#define ANIM_SPEED_RUN  0.05f 
+
 
 
 // Retangulo de colisão do Mario
@@ -335,11 +339,15 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
          Mario->actualState = ACTION_JUMPING;
     }
 
-    // Lógica do FPS da animação de corrida (tal qual a corrida, implementa aumento gradual depois)
-    if(isTryingToRun){
-        Mario->assets.activeSprite->frameSpeed=0.06f;
-    } else {
-        Mario->assets.activeSprite->frameSpeed=0.1f;
+    // Lógica do FPS da animação de corrida
+    if(Mario->actualState == ACTION_WALKING){
+        float current_speed = fabsf(Mario->speed.x);
+
+        float sprite_fps = current_speed/MARIO_RUN_SPEED;
+        if(sprite_fps > 1.0f){
+            sprite_fps = 1.0f;
+        }
+        Mario->assets.activeSprite->frameSpeed = ANIM_SPEED_WALK - (sprite_fps * (ANIM_SPEED_WALK - ANIM_SPEED_RUN));
     }
 
     // Evita um bug do estado IDLE
@@ -597,10 +605,10 @@ void DrawMario(Mario_t *Mario){
         Mario->assets.activeSprite->frameWidthCut * MARIO_SPRITE_SCALE,
         Mario->assets.activeSprite->frameHeightCut * MARIO_SPRITE_SCALE);
 
-    // Depuracao da hitbox
-    DrawRectangleLines(Mario->hitbox.x, Mario->hitbox.y, Mario->hitbox.width, Mario->hitbox.height, RED); 
-    DrawRectangleLinesEx(Mario->cave_control.entrance, 2, RED);
-    DrawRectangleLinesEx(Mario->cave_control.exit, 2, RED);
+    // Desenhar hitox para depuracao
+    // DrawRectangleLines(Mario->hitbox.x, Mario->hitbox.y, Mario->hitbox.width, Mario->hitbox.height, RED); 
+    // DrawRectangleLinesEx(Mario->cave_control.entrance, 2, RED);
+    // DrawRectangleLinesEx(Mario->cave_control.exit, 2, RED);
 }
 
 
@@ -664,8 +672,8 @@ void DrawFlag(Flag_t *Flag){
         WHITE
     );
 
-    // Algumas hitbox para depuracao
-    DrawRectangleLinesEx(Flag->hitbox, 2, RED);
+    // Desenha hitbox do pilar para depuracao
+    // DrawRectangleLinesEx(Flag->hitbox, 2, RED);
 }
 
 // Atualiza interacao do mario com a bandeira de fim de jogo
