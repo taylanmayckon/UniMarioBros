@@ -14,8 +14,15 @@
 │   └── 📦 raylib-5.5/        # Cópia local da biblioteca Raylib.
 │
 ├── 📁 lib/                   # Bibliotecas e módulos próprios desenvolvidos pela equipe do projeto.
-│   ├── 📄 player.c           # Lógica do jogador.
-│   └── 📄 player.h           # Header para o módulo do jogador.
+│   └── 📦 camera/            
+│   └── 📦 coin/            
+│   └── 📦 collisions/      
+│   └── 📦 inimigos/        
+│   └── 📦 mario/            
+│   └── 📦 mario_animdb/     
+│   └── 📦 menu/             
+│   └── 📦 platform/         
+│   └── 📦 scene/             
 │
 ├── 📁 logs/                  # Arquivos de log gerados durante a execução para depuração.
 │   └── 📝 log-23-05-2025.txt
