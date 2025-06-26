@@ -84,6 +84,14 @@ typedef struct{
     float deadSoundTimer; // Deixa o som de morte tocar todo antes de prosseguir
 } MarioDeadControl_t;
 
+// Para controlar a passagem para fase secreta
+typedef struct{
+    Vector2 previous_position; // Armazena a posicao antes de entrar no cano
+    Vector2 cave_coord; // Coordenadas do tp da caverna (x,y)
+    Rectangle entrance; // Hitbox da entrada
+    Rectangle exit; // Hitbox da saida
+} MarioCaveControl_t;
+
 // Struct principal do Mario
 typedef struct{
     Vector2 position; // Posição atual do Mario (x, y)
@@ -92,6 +100,7 @@ typedef struct{
     MarioStats_t stats; // Status gerais do Mario
     MarioAirControl_t air_control; // Variaveis de controle no ar para o Mario
     MarioDeadControl_t dead_control; // Variaveis de controle da morte do Mario
+    MarioCaveControl_t cave_control; // Variaveis de controle da fase secreta
     MarioPowerUpStates_t powerUpState; // Estado atual do Mario (ex: normal, grande)
     MarioActionStates_t actualState; // Ação atual do Mario (parado, correndo, pulando...)
     MarioAssets_t assets; // Todas as animações agrupadas

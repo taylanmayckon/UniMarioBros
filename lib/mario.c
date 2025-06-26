@@ -31,7 +31,7 @@
 
 // Posicao inicial do mario
 // #define MARIO_START_POSITION (Vector2){260.0f, 100.0f}
-#define MARIO_START_POSITION (Vector2){3000.0f, 0.0f}
+#define MARIO_START_POSITION (Vector2){1517.0f, 0.0f}
 
 // Constantes de Física e Movimento 
 #define MARIO_WALK_SPEED 200.0f // Velocidade de caminhada base
@@ -106,7 +106,7 @@ void deathAnim(Mario_t *Mario, int death_frame){
 // Pega inputs do teclado, processa a física e gera outputs para outras libs
 void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCount, Sound bumpSound) {
     // Considera que está morto sempre que some da tela sem estar na caverna
-    if(Mario->position.y > 700.0f && !Mario->stats.isOnCave){ // O fim da tela + uns quebrados
+    if(Mario->position.y > 700.0f && !Mario->stats.isOnCave && Mario->actualState != ACTION_ENTERING_PIPE){ // O fim da tela + uns quebrados
         Mario->actualState = ACTION_DYING; // Se o Mario caiu, ele está no processo de morrer
         
         if (!Mario->dead_control.deadSoundPlayed) {
@@ -154,23 +154,43 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
     bool wantsToCrouch = IsKeyDown(KEY_DOWN);
     bool isTryingToRun = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT); 
 
-    // Detecta animacao de entrar no cano
-    Rectangle secret_pipe; //  Muda para uma hitbox acima do cano secreto, faz bem pequeno rente ao chao e prolonga até onde quer a animacao
-    // Detecta entrada na entrada secreta
-    if(CheckCollisionRecs(secret_pipe, Mario->hitbox) && wantsToCrouch) Mario->actualState = ACTION_ENTERING_PIPE;
+    // Para controlar a passagem para fase secreta
+    // typedef struct{
+    //     Vector2 previous_position; // Armazena a posicao antes de entrar no cano
+    //     Vector2 cave_coord; // Coordenadas do tp da caverna (x,y)
+    //     Rectangle entrance; // Hitbox da entrada
+    //     Rectangle exit; // Hitbox da saida
+    // } MarioCaveControl_t;
+
+    // Detecta animacao de entrar no cano da caverna
+    if(CheckCollisionRecs(Mario->cave_control.entrance, Mario->hitbox) && wantsToCrouch){
+        Mario->actualState = ACTION_ENTERING_PIPE;
+        Mario->cave_control.previous_position = Mario->position;
+    }
+
     // Tratamento da passagem para fase secreta
     if(Mario->actualState==ACTION_ENTERING_PIPE){
-        Mario->position.y += 4.0f; 
-        if(CheckCollisionRecs(secret_pipe, Mario->hitbox) && wantsToCrouch){
+        Mario->position.y += 0.3f; 
+        MarioHitbox(Mario);
+        if(!CheckCollisionRecs(Mario->cave_control.entrance, Mario->hitbox)){
             Mario->actualState = ACTION_IDLE;
-            Mario->stats.facingRight = true;
-            Mario->position.x = Mario->position.x;
-            Mario->position.y = Mario->position.y;
+            Mario->stats.facingRight = false;
+            Mario->position = Mario->cave_control.cave_coord;
+            Mario->stats.isOnCave = true;
         }
         return; // Retorno pra nao processar fisica e afins
     }
 
-    
+    // Detecta se deve voltar para a fase normal
+    if(CheckCollisionRecs(Mario->cave_control.exit, Mario->hitbox) && Mario->stats.isOnCave){
+        Mario->position = Mario->cave_control.previous_position;
+        Mario->stats.isOnCave = false;
+        // Volta pulando
+        Mario->stats.canJump = false;
+        Mario->speed.y = -MARIO_JUMP_STRENGTH;
+        Mario->speed.x = 0.0f;
+        Mario->actualState = ACTION_JUMPING;
+    }
 
     // Modifica pra fazer aumento gradual de velocidade de andar até correr na vel max
     float currentMoveSpeed = isTryingToRun ? MARIO_RUN_SPEED : MARIO_WALK_SPEED;   
@@ -325,19 +345,28 @@ void InitSprite(MarioSprite_t *sprite, Texture2D texture, Rectangle original_fra
 void InitMario(Mario_t *Mario){
     Mario->position = MARIO_START_POSITION; 
     Mario->speed = (Vector2){0.0f, 0.0f}; 
-    Mario->stats.invincible = false;
-    Mario->stats.facingRight = true; 
+    
     Mario->powerUpState = STATE_SMALL; 
     Mario->actualState = ACTION_IDLE;
+
+    Mario->stats.invincible = false;
+    Mario->stats.facingRight = true; 
     Mario->stats.lives=3; 
     Mario->stats.score=0;
     Mario->stats.coins=0;
     Mario->stats.canMove = true; 
     Mario->stats.canJump = false; 
+    Mario->stats.isOnCave = false;
+
     Mario->dead_control.deadStarted = false; 
     Mario->dead_control.deadSoundTimer = 0.0f; 
+
     Mario->air_control.maxAirTimeX = 0.3f; 
     Mario->air_control.countAirTimeX = 0.0f; 
+
+    Mario->cave_control.cave_coord = (Vector2){1850.0f, 400.0f};
+    Mario->cave_control.entrance = (Rectangle){1467.0f, 320.0f, MARIO_SPRITE_SCALE*17.0f, MARIO_SPRITE_SCALE*12.0f};
+    Mario->cave_control.exit = (Rectangle){1860.0f, 368.0f, MARIO_SPRITE_SCALE*17.0f, MARIO_SPRITE_SCALE*24.0f};
 
     // Renderizando os arquivos das sprites
     Mario->assets.superMarioSheet = LoadTexture("assets/textures/mario/supermario.png");
@@ -548,6 +577,8 @@ void DrawMario(Mario_t *Mario){
 
     // Depuracao da hitbox
     DrawRectangleLines(Mario->hitbox.x, Mario->hitbox.y, Mario->hitbox.width, Mario->hitbox.height, RED); 
+    DrawRectangleLinesEx(Mario->cave_control.entrance, 2, RED);
+    DrawRectangleLinesEx(Mario->cave_control.exit, 2, RED);
 }
 
 
@@ -611,6 +642,7 @@ void DrawFlag(Flag_t *Flag){
         WHITE
     );
 
+    // Algumas hitbox para depuracao
     DrawRectangleLinesEx(Flag->hitbox, 2, RED);
 }
 

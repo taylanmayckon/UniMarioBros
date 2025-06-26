@@ -14,8 +14,8 @@ void MoveCamera(Camera2D *gameCamera, Mario_t *Mario, GameScene *scene, int widt
     float old_position = gameCamera->target.x;
     float camTargetX = roundf(Mario->position.x); // Arredonda X da câmera
 
-    // Impede o retorno de camera ao avancar na fase
-    if(camTargetX < old_position){
+    // Impede o retorno de camera ao avancar na fase (quando nao ta na fase secreta)
+    if(camTargetX < old_position && !Mario->stats.isOnCave){
         camTargetX = old_position;
     }
 

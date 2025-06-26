@@ -21,7 +21,7 @@ void DrawGameScene(GameScene scene, bool section) {
     Rectangle destRec = { 0, 0, scene.scaledBackgroundWidth, (float)GetScreenHeight() }; // Retângulo de destino
     
     //Verificação de qual parte do cenário deve ser desenhada
-    if (section != false) {
+    if (!section) {
             // Retângulo de origem do fundo para a parte de cima do mapa
             sourceRec.y = 0;
     }
