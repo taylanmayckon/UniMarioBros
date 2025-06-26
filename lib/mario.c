@@ -35,14 +35,14 @@
 #define MARIO_END_POSITION_X 3515.0f
 
 // Constantes de Física e Movimento 
-#define MARIO_GROUND_ACCELERATION 600.0f // Aceleração do Mario no chão (pixels/s^2)
+#define MARIO_GROUND_ACCELERATION 320.0f // Aceleração do Mario no chão (pixels/s^2)
 #define MARIO_WALK_SPEED 200.0f // Velocidade de caminhada base
 #define MARIO_RUN_SPEED 400.0f // Velocidade de corrida
 #define MARIO_JUMP_STRENGTH 750.0f // Força inicial do pulo
 #define GRAVITY 1400.0f // Aceleração da gravidade (pixels/s^2)
 #define MAX_FALL_SPEED 650.0f // Velocidade máxima de queda
 #define WALK_GROUND_FRICTION_COEFF 0.94f // Coeficiente de atrito andando (quanto menor, maior o atrito)
-#define SLIDE_GROUND_FRICTION_COEFF 0.84f // Coeficiente de atrito deslizando (quanto menor, maior o atrito)
+#define SLIDE_GROUND_FRICTION_COEFF 0.87f // Coeficiente de atrito deslizando (quanto menor, maior o atrito)
 #define AIR_FRICTION_COEFF 0.98f // Coeficiente de atrito no ar (2 anos de aero, se tá no ar tem arrasto)
 #define STOP_SPEED_THRESHOLD 10.0f  // Abaixo desta Vx, considera-se parado
 #define MARIO_AIR_ACCELERATION 1600.0f // Aceleração que o jogador pode aplicar no ar (pixels/s^2)
