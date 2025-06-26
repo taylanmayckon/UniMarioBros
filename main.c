@@ -61,10 +61,9 @@ int main(void) {
     while (!WindowShouldClose()) {
         UpdateMusicStream(audio.mario_menu);
 
-        MoveCamera(&gameCamera, &Mario, &scene, SCREEN_WIDTH, SCREEN_HEIGHT);
-
         BeginDrawing();
         ClearBackground(BLACK);
+        MoveCamera(&gameCamera, &Mario, &scene, SCREEN_WIDTH, SCREEN_HEIGHT);
         BeginMode2D(gameCamera);
 
         //Controle de Telas
