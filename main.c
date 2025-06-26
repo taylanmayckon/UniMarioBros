@@ -67,23 +67,23 @@ int main(void) {
         BeginMode2D(gameCamera);
 
         //Controle de Telas
-        // switch (menu_state.currentScreen) {
-        //     case LOADING_GAME:
-        //         LoadingGameScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break;
-        //     case MENU:
-        //         MenuScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break;
-        //     case OPTIONS:
-        //         OptionsScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break;
-        //     case START:
-        //         StartScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break;
-        //     case LOADING_LEVEL:
-        //         LoadingLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break;
-        //     case LEVEL1:
+        switch (menu_state.currentScreen) {
+            case LOADING_GAME:
+                LoadingGameScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case MENU:
+                MenuScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case OPTIONS:
+                OptionsScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case START:
+                StartScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case LOADING_LEVEL:
+                LoadingLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            case LEVEL1:
                 
                 UpdateMario(&Mario, physPlatforms, physPlatCount, bumpSound);
                 UpdateInimigos(chao, plataforma, paredes, 2, &Mario); // <-- Atualiza inimigos
@@ -92,24 +92,24 @@ int main(void) {
                 Level1Screen(&menu_state, &icons, &audio, &iconsinvisible);
                 UpdateFlag(&Flag, &Mario, physPlatforms);
                 
-        //         break;
-        //     case CAVERNA:
-        //         break;
-        //     case OPTIONS_LEVEL:
-        //         OptionsLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break; 
-        //     case EXITLEVEL:
-        //         ExitLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
-        //         break;
-        //     case GAMEOVER:
-        //         framecounter4++;
-        //         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
-        //         DrawText("GAME OVER", 300, 200, 50, WHITE);
-        //         if (framecounter4>100){
-        //             g->currentScreen = MENU;
-        //         }
-        //         break;
-        // }
+                break;
+            case CAVERNA:
+                break;
+            case OPTIONS_LEVEL:
+                OptionsLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break; 
+            case EXITLEVEL:
+                ExitLevelScreen(&menu_state, &icons, &audio, &iconsinvisible);
+                break;
+            // case GAMEOVER:
+            //     framecounter4++;
+            //     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
+            //     DrawText("GAME OVER", 300, 200, 50, WHITE);
+            //     if (framecounter4>100){
+            //         g->currentScreen = MENU;
+            //     }
+            //     break;
+        }
 
         EndMode2D();
         EndDrawing();

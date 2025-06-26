@@ -30,8 +30,8 @@
 #define PILAR_SPRITE_SCALE 3.0f
 
 // Posicao inicial do mario
-#define MARIO_START_POSITION (Vector2){260.0f, 100.0f}
-// #define MARIO_START_POSITION (Vector2){3000.0f, 0.0f}
+#define MARIO_START_POSITION (Vector2){260.0f, 445.0f}
+// #define MARIO_START_POSITION (Vector2){3000.0f, 0.0f} // Coords do fim de mapa pra depuraçao
 #define MARIO_END_POSITION_X 3515.0f
 
 // Constantes de Física e Movimento 
@@ -113,6 +113,7 @@ void deathAnim(Mario_t *Mario, int death_frame){
 void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCount, Sound bumpSound) {
     float dt = GetFrameTime(); 
     bool isOnGround = false; // Assume que inicialmente o Mario est[a no ar no inicio de cada frame
+    // printf("(%.2f, %.2f)\n", Mario->position.x, Mario->position.y);
 
 
     // Considera que está morto sempre que some da tela sem estar na caverna
@@ -607,7 +608,7 @@ void DrawMario(Mario_t *Mario){
 
     // Desenhar hitox para depuracao
     // DrawRectangleLines(Mario->hitbox.x, Mario->hitbox.y, Mario->hitbox.width, Mario->hitbox.height, RED); 
-    // DrawRectangleLinesEx(Mario->cave_control.entrance, 2, RED);
+    DrawRectangleLinesEx(Mario->cave_control.entrance, 2, RED);
     // DrawRectangleLinesEx(Mario->cave_control.exit, 2, RED);
 }
 
