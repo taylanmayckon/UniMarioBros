@@ -43,5 +43,4 @@ void DrawGameScene(GameScene scene, bool section) {
 // Função para liberar recursos do cenário
 void UnloadGameScene(GameScene scene) {
     UnloadTexture(scene.background); // Libera textura do fundo
-    free(scene.platforms);           // Libera vetor de plataformas
 }
