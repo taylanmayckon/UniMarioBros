@@ -30,11 +30,12 @@
 #define PILAR_SPRITE_SCALE 3.0f
 
 // Posicao inicial do mario
-// #define MARIO_START_POSITION (Vector2){260.0f, 100.0f}
-#define MARIO_START_POSITION (Vector2){3000.0f, 0.0f}
+#define MARIO_START_POSITION (Vector2){260.0f, 100.0f}
+// #define MARIO_START_POSITION (Vector2){3000.0f, 0.0f}
 #define MARIO_END_POSITION_X 3515.0f
 
 // Constantes de Física e Movimento 
+#define MARIO_GROUND_ACCELERATION 600.0f // Aceleração do Mario no chão (pixels/s^2)
 #define MARIO_WALK_SPEED 200.0f // Velocidade de caminhada base
 #define MARIO_RUN_SPEED 400.0f // Velocidade de corrida
 #define MARIO_JUMP_STRENGTH 750.0f // Força inicial do pulo
@@ -240,12 +241,22 @@ void UpdateMario(Mario_t *Mario, PhysPlatform_t *physPlatforms, int physPlatCoun
 
             // Movimento horizontal
             else if(wantsToMoveLeft && !wantsToMoveRight){ // Esquerda
-                Mario->speed.x = -currentMoveSpeed;
+                // Incrementa aceleracao
+                Mario->speed.x -= MARIO_GROUND_ACCELERATION*dt;
+                // Limita para a Vmax atual
+                if(Mario->speed.x < -currentMoveSpeed){
+                    Mario->speed.x = -currentMoveSpeed;
+                }
                 Mario->stats.facingRight = false;
                 if (Mario->actualState != ACTION_JUMPING) Mario->actualState = ACTION_WALKING; // Troca para anim de andar, caso nao esteja pulando
             }
             else if(!wantsToMoveLeft && wantsToMoveRight){ // Direita
-                Mario->speed.x = currentMoveSpeed;
+                // Incrementa aceleracao
+                Mario->speed.x += MARIO_GROUND_ACCELERATION*dt;
+                // Limita para a Vmax atual
+                if(Mario->speed.x > currentMoveSpeed){
+                    Mario->speed.x = currentMoveSpeed;
+                }
                 Mario->stats.facingRight = true;
                 if (Mario->actualState != ACTION_JUMPING) Mario->actualState = ACTION_WALKING; // Troca para anim de andar, caso nao esteja pulando
             }
