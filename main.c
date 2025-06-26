@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 #include "raylib.h"
 #include "mario.h"
 #include "scene.h"
@@ -37,6 +38,7 @@ int main(void) {
     InitIconsInvisible(&iconsinvisible, &icons);
     InitAudio(&audio);
     InitFlag(&Flag);
+    SetWindowIcon(icons.icon_window);
 
     scene = CreateGameScene("assets/textures/background.png");
 
@@ -123,8 +125,26 @@ int main(void) {
     UnloadAll(&icons, &audio);
     UnloadMario(&Mario);
     UnloadFlag(&Flag);
+
+    FILE *p;
+    p = fopen("assets/texts_files/score.bin","wb");
+    if(p == NULL){
+        printf("Erro na criacao do arquivo.");
+        return 1;
+    }else{
+        fwrite(&Mario.stats.score, sizeof(int), 1, p);
+    }
+    fclose(p);
+
+    p = fopen("assets/texts_files/credits.bin","wb");
+    if(p == NULL){
+        printf("Erro na criacao do arquivo.");
+        return 1;
+    }else{
+        fwrite(&Mario.stats.coins, sizeof(int), 1, p);
+    }
+    fclose(p);
   
     CloseWindow();
-
     return 0;
 }

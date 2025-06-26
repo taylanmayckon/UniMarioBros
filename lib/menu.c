@@ -48,8 +48,6 @@ void InitMenuState(MenuState *g) {
     g->PRESS_DELAY = 0.20;
     g->speed_mario_automatico = 100.0f;
     g->pos_mario_automatico = (Vector2){170, 195};
-    strcpy(g->score, "");
-    strcpy(g->credits, "");
     g->currentScreen = LOADING_GAME;
 }
 
@@ -215,29 +213,35 @@ void OptionsScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
     DrawRectangle(295, 400, 200, 40, (Color){240,230,180,255});
 
     if (!g->scoreloaded) {
-        p = fopen("assets/texts_files/score.txt", "r");
+        p = fopen("assets/texts_files/score.bin", "rb");
         if (p == NULL) {
             printf("Erro na abertura do arquivo \"score.txt\"!\n");
         } else {
-            fread(g->score, sizeof(char), sizeof(g->score) - 1, p);
+            fread(&g->score, sizeof(int), 1, p);
             fclose(p);
         }
         g->scoreloaded = true;
     }
 
     if (!g->scoreloaded2) {
-        p = fopen("assets/texts_files/credits.txt", "r");
+        p = fopen("assets/texts_files/credits.bin", "rb");
         if (p == NULL) {
             printf("Erro na abertura do arquivo \"credits.txt\"!\n");
         } else {
-            fread(g->credits, sizeof(char), sizeof(g->credits) - 1, p);
+            fread(&g->credits, sizeof(int), 1, p);
             fclose(p);
         }
         g->scoreloaded2 = true;
     }
 
-    DrawText(g->score, 305, 290, 45, BLACK);
-    DrawText(g->credits, 305, 400, 45, BLACK);
+    char credits[50];
+    char score[50];
+
+    sprintf(score, "%d", g->score);
+    sprintf(credits, "%d", g->credits);
+
+    DrawText(score, 305, 290, 45, BLACK);
+    DrawText(credits, 305, 400, 45, BLACK);
 
     Vector2 mouse = GetMousePosition();
 
@@ -370,6 +374,7 @@ void LoadingLevelScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
             }
             g->levelMusicStarted = true;
             g->currentScreen = LEVEL1;
+            g->level_time = GetTime();
         }
     }
 }
@@ -390,9 +395,20 @@ void Level1Screen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
     DrawFloatingScores();
     DrawInimigos(false);
     DrawBlocks(physPlatforms, a->block1, a->block3, a->tunnels, a->block5);
-    /*DrawText("CREDITS", 210, 10, 20, WHITE);
-    DrawText("SCORE", 410, 10, 20, WHITE);
-    DrawText("TIME", 510, 10, 20, WHITE);*/
+
+    char credits[50];
+    char score[50];
+    char time[50];
+
+    g->current_level_time = GetTime();
+    float max_time = 240.0f;
+
+    sprintf(credits, "CREDITS: %d", Mario.stats.coins);
+    DrawText(credits, gameCamera.target.x + 210, 10, 20, WHITE);
+    sprintf(score, "SCORE: %d", Mario.stats.score);
+    DrawText(score, gameCamera.target.x - 360, 10, 20, WHITE);
+    sprintf(time, "TIME: %.0f", max_time - (g->current_level_time - g->level_time));
+    DrawText(time, gameCamera.target.x - 50 , 10, 20, WHITE);
     if (Mario.stats.gameover){
         g->currentScreen = GAMEOVER;
         // Só acionar isso no fim da tela de gameover
@@ -407,17 +423,19 @@ void Level1Screen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
 void OptionsLevelScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
     UpdateMusicStream(au->level_1);
 
+    float offset_menu = gameCamera.target.x - gameCamera.offset.x;
+
     DrawGameScene(scene, Mario.stats.isOnCave);
     DrawRectangle(0, 0, scene.background.width, scene.background.height, Fade(BLACK, 0.5f));
-    DrawTexture(a->options_square, GetScreenWidth()/2 - a->options_square.width/2, GetScreenHeight()/2 - a->options_square.height/2, WHITE);
+    DrawTexture(a->options_square, offset_menu + GetScreenWidth()/2 - a->options_square.width/2, GetScreenHeight()/2 - a->options_square.height/2, WHITE);
 
     Vector2 mouse = GetMousePosition();
 
     // Botão Exit Options
     if (!g->exitOptionsPressed) {
-        DrawTexture(a->exit_button, 560, 103, WHITE);
+        DrawTexture(a->exit_button, offset_menu + 560, 103, WHITE);
         if (CheckCollisionPointRec(mouse, b->exit_optionsRect2)) {
-            DrawRectangle(560, 103, a->exit_button.width, a->exit_button.height, Fade(BLACK, 0.2f));
+            DrawRectangle(offset_menu + 560, 103, a->exit_button.width, a->exit_button.height, Fade(BLACK, 0.2f));
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                 if (g->sound_counter == 0) PlaySound(au->clickSound);
                 g->exitOptionsPressed = true;
@@ -425,7 +443,7 @@ void OptionsLevelScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
             }
         }
     } else {
-        DrawTexture(a->exit_button_pressed, 563, 105, LIGHTGRAY);
+        DrawTexture(a->exit_button_pressed, offset_menu + 563, 105, LIGHTGRAY);
         if ((GetTime() - g->exitOptionsPressedTime) >= g->PRESS_DELAY) {
             g->currentScreen = LEVEL1;
             g->exitOptionsPressed = false;
@@ -435,12 +453,12 @@ void OptionsLevelScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
     // Botão Sound
     if (!g->soundPressedOptions) {
         if (g->sound_counter == 0) {
-            DrawTexture(a->sound_on_buttom, 370, 220, WHITE);
+            DrawTexture(a->sound_on_buttom, offset_menu + 370, 220, WHITE);
         } else {
-            DrawTexture(a->sound_off_buttom, 370, 220, WHITE);
+            DrawTexture(a->sound_off_buttom, offset_menu + 370, 220, WHITE);
         }
         if (CheckCollisionPointRec(mouse, b->sound_buttomRect2)) {
-            DrawRectangle(370, 220, a->sound_on_buttom.width, a->sound_on_buttom.height, Fade(BLACK, 0.2f));
+            DrawRectangle( offset_menu + 370, 220, a->sound_on_buttom.width, a->sound_on_buttom.height, Fade(BLACK, 0.2f));
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                 if (g->sound_counter == 0) PlaySound(au->clickSound);
                 g->soundPressedOptions = true;
@@ -449,9 +467,9 @@ void OptionsLevelScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
         }
     } else {
         if (g->sound_counter == 0) {
-            DrawTexture(a->sound_on_buttom_pressed, 373, 222, LIGHTGRAY);
+            DrawTexture(a->sound_on_buttom_pressed,  offset_menu + 373, 222, LIGHTGRAY);
         } else {
-            DrawTexture(a->sound_off_buttom_pressed, 373, 222, LIGHTGRAY);
+            DrawTexture(a->sound_off_buttom_pressed, offset_menu + 373, 222, LIGHTGRAY);
         }
         if ((GetTime() - g->soundPressedTimeOptions) >= g->PRESS_DELAY) {
             if (g->sound_counter == 0) {
@@ -467,9 +485,9 @@ void OptionsLevelScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
 
     // Botão Quit
     if (!g->quitOptionsPressed) {
-        DrawTexture(a->quit_buttom, 320, 300, WHITE);
+        DrawTexture(a->quit_buttom, offset_menu + 320, 300, WHITE);
         if (CheckCollisionPointRec(mouse, b->quit_buttomRect)) {
-            DrawRectangle(320, 300, a->quit_buttom.width, a->quit_buttom.height, Fade(BLACK, 0.2f));
+            DrawRectangle(offset_menu + 320, 300, a->quit_buttom.width, a->quit_buttom.height, Fade(BLACK, 0.2f));
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                 if (g->sound_counter == 0) PlaySound(au->clickSound);
                 g->quitOptionsPressed = true;
@@ -477,7 +495,7 @@ void OptionsLevelScreen(MenuState *g, Icons *a, Audio *au, IconsInvisible *b) {
             }
         }
     } else {
-        DrawTexture(a->quit_buttom_pressed, 320, 300, LIGHTGRAY);
+        DrawTexture(a->quit_buttom_pressed, offset_menu + 320, 300, LIGHTGRAY);
         if ((GetTime() - g->quitOptionsPressedTime) >= g->PRESS_DELAY) {
             g->currentScreen = EXITLEVEL;
             g->quitOptionsPressed = false;

@@ -75,8 +75,8 @@ typedef struct {
 
 // Struct do estado do menu
 typedef struct {
-    char score[1024];
-    char credits[1024];
+    int score;
+    int credits;
     int framecounter1;
     int framecounter2;
     int framecounter3;
@@ -103,6 +103,8 @@ typedef struct {
     double quitOptionsPressedTime;
     double PRESS_DELAY;
     float speed_mario_automatico;
+    float level_time;
+    float current_level_time;
     Vector2 pos_mario_automatico;
     GameScreen currentScreen;
 } MenuState;

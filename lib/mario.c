@@ -623,7 +623,7 @@ void DrawMario(Mario_t *Mario){
 
     // Desenhar hitox para depuracao
     // DrawRectangleLines(Mario->hitbox.x, Mario->hitbox.y, Mario->hitbox.width, Mario->hitbox.height, RED); 
-    DrawRectangleLinesEx(Mario->cave_control.entrance, 2, RED);
+    // DrawRectangleLinesEx(Mario->cave_control.entrance, 2, RED);
     // DrawRectangleLinesEx(Mario->cave_control.exit, 2, RED);
 }
 
@@ -710,6 +710,7 @@ void UpdateFlag(Flag_t *Flag, Mario_t *Mario, PhysPlatform_t *physPlatform){
             Mario->actualState = ACTION_WALKING;
             Mario->stats.winningGame = true;
             AddScoreAtPosition((Vector2){Flag->flag.destRec.x, Flag->flag.destRec.y - 10.0f}, 1000);
+            Mario->stats.score += 1000;
         }
     }
     DrawFlag(Flag);
