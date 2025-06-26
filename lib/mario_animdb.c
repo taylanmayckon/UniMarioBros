@@ -4,11 +4,13 @@
 MarioAnimDB_t InitSmallMarioDB(){
     MarioAnimDB_t db;
 
-    db.idle = (AnimData_t){.isLooping=false, .freezedFrameLeft=4, .freezedFrameRight=7};
-    db.walking = (AnimData_t){.isLooping=true, .leftAnimFrames=(FrameRange_t){2, 4}, .rightAnimFrames=(FrameRange_t){7,9}};
-    db.jumping = (AnimData_t){.isLooping=false, .freezedFrameLeft=0, .freezedFrameRight=11};
-    db.slide = (AnimData_t){.isLooping=false, .freezedFrameLeft=1, .freezedFrameRight=10};
-    db.death = (AnimData_t){.isLooping=false, .freezedFrameLeft=5, .freezedFrameRight=5};
+    db.idle = (AnimData_t){.isLooping=false, .freezedFrameLeft=7, .freezedFrameRight=10};
+    db.walking = (AnimData_t){.isLooping=true, .leftAnimFrames=(FrameRange_t){5, 7}, .rightAnimFrames=(FrameRange_t){10,12}};
+    db.jumping = (AnimData_t){.isLooping=false, .freezedFrameLeft=3, .freezedFrameRight=14};
+    db.slide = (AnimData_t){.isLooping=false, .freezedFrameLeft=4, .freezedFrameRight=13};
+    db.death = (AnimData_t){.isLooping=false, .freezedFrameLeft=8, .freezedFrameRight=8};
+    db.flag = (AnimData_t){.isLooping=false, .freezedFrameLeft=16, .freezedFrameRight=1};
+    db.pipe = (AnimData_t){.isLooping=false, .freezedFrameLeft=2, .freezedFrameRight=15};
 
     return db;
 }
@@ -22,6 +24,8 @@ MarioAnimDB_t InitSuperMarioDB(){
     db.jumping = (AnimData_t){.isLooping=false, .freezedFrameLeft=1, .freezedFrameRight=10};
     db.slide = (AnimData_t){.isLooping=false, .freezedFrameLeft=2, .freezedFrameRight=9};
     db.crouch = (AnimData_t){.isLooping=false, .freezedFrameLeft=0, .freezedFrameRight=11};
+    // db.flag = (AnimData_t){.isLooping=false, .freezedFrameLeft=5, .freezedFrameRight=5};
+    // db.pipe = (AnimData_t){.isLooping=false, .freezedFrameLeft=2, .freezedFrameRight=15};
 
     return db;
 }
@@ -36,6 +40,8 @@ MarioAnimDB_t InitFireMarioDB(){
     db.slide = (AnimData_t){.isLooping=false, .freezedFrameLeft=3, .freezedFrameRight=10};
     db.crouch = (AnimData_t){.isLooping=false, .freezedFrameLeft=1, .freezedFrameRight=12};
     db.throw = (AnimData_t){.isLooping=false, .freezedFrameLeft=0, .freezedFrameRight=13};
+    // db.flag = (AnimData_t){.isLooping=false, .freezedFrameLeft=5, .freezedFrameRight=5};
+    // db.pipe = (AnimData_t){.isLooping=false, .freezedFrameLeft=2, .freezedFrameRight=15};
 
     return db;
 }
